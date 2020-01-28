@@ -14,6 +14,7 @@ func main() {
 	identifier := flag.String("i", "", "NKN address identifier")
 	from := flag.String("from", "", "from address (\"nkn\" or ip:port)")
 	to := flag.String("to", "", "to address (nkn address or ip:port)")
+	tuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
 
 	flag.Parse()
 
@@ -30,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	t, err := tunnel.NewTunnel(*numClients, seed, *identifier, *from, *to)
+	t, err := tunnel.NewTunnel(*numClients, seed, *identifier, *from, *to, *tuna)
 	if err != nil {
 		log.Fatal(err)
 	}

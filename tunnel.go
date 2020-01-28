@@ -6,24 +6,32 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 
 	nknsdk "github.com/nknorg/nkn-sdk-go"
+	session "github.com/nknorg/nkn-tuna-session"
 )
 
-type Tunnel struct {
-	from        string
-	to          string
-	fromNKN     bool
-	toNKN       bool
-	listener    net.Listener
-	multiClient *nknsdk.MultiClient
+type nknDialer interface {
+	Dial(addr string) (net.Conn, error)
 }
 
-func NewTunnel(numClients int, seed []byte, identifier, from, to string) (*Tunnel, error) {
+type Tunnel struct {
+	from      string
+	to        string
+	fromNKN   bool
+	toNKN     bool
+	nknDialer nknDialer
+	listener  net.Listener
+}
+
+func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna bool) (*Tunnel, error) {
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
 	var m *nknsdk.MultiClient
+	var c *session.TunaSessionClient
 	var err error
+	var dialer nknDialer
 
 	if fromNKN || toNKN {
 		account, err := nknsdk.NewAccount(seed)
@@ -37,17 +45,38 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string) (*Tunne
 		if err != nil {
 			return nil, err
 		}
+
+		dialer = m
+
+		if tuna {
+			wallet, err := nknsdk.NewWallet(account, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			c, err = session.NewTunaSessionClient(account, m, wallet, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			dialer = c
+		}
 	}
 
 	var listener net.Listener
 
 	if fromNKN {
-		err = m.Listen(nil)
+		if tuna {
+			listener = c
+			err = c.Listen(nil)
+		} else {
+			listener = m
+			err = m.Listen(nil)
+		}
 		if err != nil {
 			return nil, err
 		}
-		listener = m
-		from = m.Addr().String()
+		from = listener.Addr().String()
 	} else {
 		listener, err = net.Listen("tcp", from)
 		if err != nil {
@@ -58,12 +87,12 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string) (*Tunne
 	log.Println("Listening at", from)
 
 	t := &Tunnel{
-		from:        from,
-		to:          to,
-		fromNKN:     fromNKN,
-		toNKN:       toNKN,
-		listener:    listener,
-		multiClient: m,
+		from:      from,
+		to:        to,
+		fromNKN:   fromNKN,
+		toNKN:     toNKN,
+		nknDialer: dialer,
+		listener:  listener,
 	}
 
 	return t, nil
@@ -71,7 +100,7 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string) (*Tunne
 
 func (t *Tunnel) dial(addr string) (net.Conn, error) {
 	if t.toNKN {
-		return t.multiClient.Dial(addr)
+		return t.nknDialer.Dial(addr)
 	} else {
 		return net.Dial("tcp", addr)
 	}
@@ -97,16 +126,17 @@ func (t *Tunnel) Start() error {
 }
 
 func pipe(a, b net.Conn) {
+	var wg sync.WaitGroup
+	wg.Add(2)
 	go func() {
-		_, err := io.Copy(a, b)
-		if err != nil {
-			return
-		}
+		defer wg.Done()
+		io.Copy(a, b)
 	}()
 	go func() {
-		_, err := io.Copy(b, a)
-		if err != nil {
-			return
-		}
+		defer wg.Done()
+		io.Copy(b, a)
 	}()
+	wg.Wait()
+	a.Close()
+	b.Close()
 }
