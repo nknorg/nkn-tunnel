@@ -8,9 +8,6 @@ import (
 	"strings"
 
 	nknsdk "github.com/nknorg/nkn-sdk-go"
-	"github.com/nknorg/nkn/common"
-	"github.com/nknorg/nkn/crypto"
-	"github.com/nknorg/nkn/vault"
 )
 
 type Tunnel struct {
@@ -22,34 +19,21 @@ type Tunnel struct {
 	multiClient *nknsdk.MultiClient
 }
 
-func NewTunnel(numClients int, seedHex, identifier, from, to string) (*Tunnel, error) {
+func NewTunnel(numClients int, seed []byte, identifier, from, to string) (*Tunnel, error) {
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
 	var m *nknsdk.MultiClient
 	var err error
 
 	if fromNKN || toNKN {
-		var account *vault.Account
-		var err error
-		if len(seedHex) > 0 {
-			seed, err := common.HexStringToBytes(seedHex)
-			if err != nil {
-				return nil, err
-			}
-			account, err = vault.NewAccountWithPrivatekey(crypto.GetPrivateKeyFromSeed(seed))
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			account, err = vault.NewAccount()
-			if err != nil {
-				return nil, err
-			}
+		account, err := nknsdk.NewAccount(seed)
+		if err != nil {
+			return nil, err
 		}
 
 		log.Println("Seed:", hex.EncodeToString(account.PrivateKey[:32]))
 
-		m, err = nknsdk.NewMultiClient(account, identifier, numClients, false, nknsdk.ClientConfig{ConnectRetries: 1})
+		m, err = nknsdk.NewMultiClient(account, identifier, numClients, false, &nknsdk.ClientConfig{ConnectRetries: 1})
 		if err != nil {
 			return nil, err
 		}
@@ -58,6 +42,10 @@ func NewTunnel(numClients int, seedHex, identifier, from, to string) (*Tunnel, e
 	var listener net.Listener
 
 	if fromNKN {
+		err = m.Listen(nil)
+		if err != nil {
+			return nil, err
+		}
 		listener = m
 		from = m.Addr().String()
 	} else {

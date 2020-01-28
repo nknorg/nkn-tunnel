@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"log"
 
@@ -16,7 +17,20 @@ func main() {
 
 	flag.Parse()
 
-	t, err := tunnel.NewTunnel(*numClients, *seedHex, *identifier, *from, *to)
+	if len(*from) == 0 {
+		log.Fatal("From address is empty")
+	}
+
+	if len(*to) == 0 {
+		log.Fatal("To address is empty")
+	}
+
+	seed, err := hex.DecodeString(*seedHex)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t, err := tunnel.NewTunnel(*numClients, seed, *identifier, *from, *to)
 	if err != nil {
 		log.Fatal(err)
 	}
