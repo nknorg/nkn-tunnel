@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	nknsdk "github.com/nknorg/nkn-sdk-go"
-	session "github.com/nknorg/nkn-tuna-session"
+	nkn "github.com/nknorg/nkn-sdk-go"
+	ts "github.com/nknorg/nkn-tuna-session"
 )
 
 type nknDialer interface {
@@ -23,25 +23,26 @@ type Tunnel struct {
 	toNKN     bool
 	nknDialer nknDialer
 	listener  net.Listener
+	verbose   bool
 }
 
-func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna bool) (*Tunnel, error) {
+func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, verbose bool) (*Tunnel, error) {
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
-	var m *nknsdk.MultiClient
-	var c *session.TunaSessionClient
+	var m *nkn.MultiClient
+	var c *ts.TunaSessionClient
 	var err error
 	var dialer nknDialer
 
 	if fromNKN || toNKN {
-		account, err := nknsdk.NewAccount(seed)
+		account, err := nkn.NewAccount(seed)
 		if err != nil {
 			return nil, err
 		}
 
 		log.Println("Seed:", hex.EncodeToString(account.PrivateKey[:32]))
 
-		m, err = nknsdk.NewMultiClient(account, identifier, numClients, false, &nknsdk.ClientConfig{ConnectRetries: 1})
+		m, err = nkn.NewMultiClient(account, identifier, numClients, false, &nkn.ClientConfig{ConnectRetries: 1})
 		if err != nil {
 			return nil, err
 		}
@@ -49,12 +50,12 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna bo
 		dialer = m
 
 		if tuna {
-			wallet, err := nknsdk.NewWallet(account, nil)
+			wallet, err := nkn.NewWallet(account, nil)
 			if err != nil {
 				return nil, err
 			}
 
-			c, err = session.NewTunaSessionClient(account, m, wallet, nil)
+			c, err = ts.NewTunaSessionClient(account, m, wallet, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -93,6 +94,7 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna bo
 		toNKN:     toNKN,
 		nknDialer: dialer,
 		listener:  listener,
+		verbose:   verbose,
 	}
 
 	return t, nil
@@ -113,11 +115,19 @@ func (t *Tunnel) Start() error {
 			return err
 		}
 
+		if t.verbose {
+			log.Println("Accept from", fromConn.RemoteAddr())
+		}
+
 		go func(fromConn net.Conn) {
 			toConn, err := t.dial(t.to)
 			if err != nil {
 				log.Println(err)
 				return
+			}
+
+			if t.verbose {
+				log.Println("Dial to", toConn.RemoteAddr())
 			}
 
 			pipe(fromConn, toConn)
