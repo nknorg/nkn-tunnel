@@ -55,7 +55,7 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, v
 				return nil, err
 			}
 
-			c, err = ts.NewTunaSessionClient(account, m, wallet, nil)
+			c, err = ts.NewTunaSessionClient(account, m, wallet, &ts.Config{NumTunaListeners: numClients})
 			if err != nil {
 				return nil, err
 			}
