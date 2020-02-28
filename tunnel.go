@@ -16,6 +16,7 @@ type nknDialer interface {
 	Dial(addr string) (net.Conn, error)
 }
 
+// Tunnel is the tunnel client struct.
 type Tunnel struct {
 	from      string
 	to        string
@@ -26,6 +27,7 @@ type Tunnel struct {
 	verbose   bool
 }
 
+// NewTunnel creates a Tunnel client with given options.
 func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, verbose bool) (*Tunnel, error) {
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
@@ -103,11 +105,11 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, v
 func (t *Tunnel) dial(addr string) (net.Conn, error) {
 	if t.toNKN {
 		return t.nknDialer.Dial(addr)
-	} else {
-		return net.Dial("tcp", addr)
 	}
+	return net.Dial("tcp", addr)
 }
 
+// Start starts the tunnel and will return on error.
 func (t *Tunnel) Start() error {
 	for {
 		fromConn, err := t.listener.Accept()
