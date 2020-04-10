@@ -1,24 +1,26 @@
-# NKN Tunnel [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/nknorg/nkn-tunnel/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/nknorg/nkn-tunnel)](https://goreportcard.com/report/github.com/nknorg/nkn-tunnel) [![Build Status](https://travis-ci.org/nknorg/nkn-tunnel.svg?branch=master)](https://travis-ci.org/nknorg/nkn-tunnel) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+# NKN Tunnel
+
+[![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/nknorg/nkn-tunnel)](https://goreportcard.com/report/github.com/nknorg/nkn-tunnel) [![Build Status](https://travis-ci.org/nknorg/nkn-tunnel.svg?branch=master)](https://travis-ci.org/nknorg/nkn-tunnel) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
 ![nkn](logo.png)
 
 Tunnel any TCP applications through NKN client or Tuna. A few advantages:
 
-* Network agnostic: Neither sender nor receiver needs to have public IP address
+- Network agnostic: Neither sender nor receiver needs to have public IP address
   or port forwarding. NKN tunnel only establish outbound (websocket)
   connections, so Internet access is all they need on both side.
 
-* Top level security: All data are end to end authenticated and encrypted. No
+- Top level security: All data are end to end authenticated and encrypted. No
   one else in the world except sender and receiver can see or modify the content
   of the data. The same public key is used for both routing and encryption,
   eliminating the possibility of man in the middle attack.
 
-* Decent performance: By aggregating multiple overlay paths concurrently, one
+- Decent performance: By aggregating multiple overlay paths concurrently, one
   can get ~100ms end to end latency and 10+mbps end to end throughput between
   international devices using the default NKN client mode, or much lower latency
   and higher throughput using Tuna mode.
 
-* Everything is open source and decentralized. The default NKN client mode is
+- Everything is open source and decentralized. The default NKN client mode is
   free (If you are curious, node relay traffic for clients for free to earn
   mining rewards in NKN blockchain), while Tuna mode requires listener to pay
   NKN token directly to Tuna service providers.
@@ -98,7 +100,8 @@ git commit -s
 
 ## Community
 
-* [Discord](https://discord.gg/c7mTynX)
-* [Telegram](https://t.me/nknorg)
-* [Reddit](https://www.reddit.com/r/nknblockchain/)
-* [Twitter](https://twitter.com/NKN_ORG)
+- [Forum](https://forum.nkn.org/)
+- [Discord](https://discord.gg/c7mTynX)
+- [Telegram](https://t.me/nknorg)
+- [Reddit](https://www.reddit.com/r/nknblockchain/)
+- [Twitter](https://twitter.com/NKN_ORG)
