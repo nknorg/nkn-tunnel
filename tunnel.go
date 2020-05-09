@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/nknorg/ncp-go"
 	nkn "github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 )
@@ -28,7 +29,7 @@ type Tunnel struct {
 }
 
 // NewTunnel creates a Tunnel client with given options.
-func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, verbose bool) (*Tunnel, error) {
+func NewTunnel(numClients int, seed []byte, identifier, from, to string, sessionConfig *ncp.Config, tuna bool, tsConfig *ts.Config, verbose bool) (*Tunnel, error) {
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
 	var m *nkn.MultiClient
@@ -44,7 +45,7 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, v
 
 		log.Println("Seed:", hex.EncodeToString(account.PrivateKey[:32]))
 
-		m, err = nkn.NewMultiClient(account, identifier, numClients, false, &nkn.ClientConfig{ConnectRetries: 1})
+		m, err = nkn.NewMultiClient(account, identifier, numClients, false, &nkn.ClientConfig{SessionConfig: sessionConfig})
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +58,11 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, tuna, v
 				return nil, err
 			}
 
-			c, err = ts.NewTunaSessionClient(account, m, wallet, &ts.Config{NumTunaListeners: numClients})
+			tsConfigCopy := *tsConfig
+			tsConfigCopy.NumTunaListeners = numClients
+			tsConfigCopy.SessionConfig = sessionConfig
+
+			c, err = ts.NewTunaSessionClient(account, m, wallet, &tsConfigCopy)
 			if err != nil {
 				return nil, err
 			}

@@ -4,8 +4,12 @@ import (
 	"encoding/hex"
 	"flag"
 	"log"
+	"strings"
 
+	"github.com/nknorg/ncp-go"
+	ts "github.com/nknorg/nkn-tuna-session"
 	tunnel "github.com/nknorg/nkn-tunnel"
+	"github.com/nknorg/tuna"
 )
 
 func main() {
@@ -14,7 +18,9 @@ func main() {
 	identifier := flag.String("i", "", "NKN address identifier")
 	from := flag.String("from", "", "from address (\"nkn\" or ip:port)")
 	to := flag.String("to", "", "to address (nkn address or ip:port)")
-	tuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
+	useTuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
+	tunaCountry := flag.String("country", "", `tuna service node allowed country code, separated by comma, e.g. "US" or "US,CN"`)
+	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
 
 	flag.Parse()
@@ -32,7 +38,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	t, err := tunnel.NewTunnel(*numClients, seed, *identifier, *from, *to, *tuna, *verbose)
+	var tsConfig *ts.Config
+	if *useTuna {
+		countries := strings.Split(*tunaCountry, ",")
+		locations := make([]tuna.Location, len(countries))
+		for i := range countries {
+			locations[i].CountryCode = strings.TrimSpace(countries[i])
+		}
+
+		tsConfig = &ts.Config{
+			TunaIPFilter: &tuna.IPFilter{Allow: locations},
+		}
+	}
+
+	t, err := tunnel.NewTunnel(*numClients, seed, *identifier, *from, *to, &ncp.Config{MTU: int32(*mtu)}, *useTuna, tsConfig, *verbose)
 	if err != nil {
 		log.Fatal(err)
 	}
