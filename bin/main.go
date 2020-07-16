@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 
@@ -10,6 +11,10 @@ import (
 	ts "github.com/nknorg/nkn-tuna-session"
 	tunnel "github.com/nknorg/nkn-tunnel"
 	"github.com/nknorg/tuna"
+)
+
+var (
+	Version string
 )
 
 func main() {
@@ -23,8 +28,14 @@ func main() {
 	tunaMaxPrice := flag.String("tuna-max-price", "0.01", "tuna max price in unit of NKN/MB")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
+	version := flag.Bool("version", false, "print version")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Println(Version)
+		return
+	}
 
 	if len(*from) == 0 {
 		log.Fatal("From address is empty")
