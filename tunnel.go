@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"strings"
-	"sync"
 
 	"github.com/nknorg/ncp-go"
 	nkn "github.com/nknorg/nkn-sdk-go"
@@ -143,17 +142,12 @@ func (t *Tunnel) Start() error {
 }
 
 func pipe(a, b net.Conn) {
-	var wg sync.WaitGroup
-	wg.Add(2)
 	go func() {
-		defer wg.Done()
 		io.Copy(a, b)
+		a.Close()
 	}()
 	go func() {
-		defer wg.Done()
 		io.Copy(b, a)
+		b.Close()
 	}()
-	wg.Wait()
-	a.Close()
-	b.Close()
 }
