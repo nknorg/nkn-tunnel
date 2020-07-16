@@ -1,7 +1,8 @@
 .DEFAULT_GOAL:=local_or_with_proxy
 
 USE_PROXY=GOPROXY=https://goproxy.io
-BUILD=go build -ldflags "-s -w"
+VERSION:=$(shell git describe --abbrev=7 --dirty --always --tags)
+BUILD=go build -ldflags "-s -w -X main.Version=$(VERSION)"
 BUILD_DIR=build
 BIN_DIR=$(GOOS)-$(GOARCH)
 BIN_NAME=nkn-tunnel
