@@ -38,4 +38,13 @@ zip:
 all:
 	${MAKE} build GOOS=darwin GOARCH=amd64
 	${MAKE} build GOOS=linux GOARCH=amd64
+	${MAKE} build GOOS=linux GOARCH=arm64
 	${MAKE} build GOOS=windows GOARCH=amd64 EXT=.exe
+
+.PHONY: ios
+ios:
+	gomobile bind -target=ios -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna
+
+.PHONY: android
+android:
+	gomobile bind -target=android -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna
