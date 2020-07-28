@@ -25,6 +25,8 @@ func main() {
 	to := flag.String("to", "", "to address (nkn address or ip:port)")
 	useTuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
 	tunaCountry := flag.String("country", "", `tuna service node allowed country code, separated by comma, e.g. "US" or "US,CN"`)
+	tunaServiceName := flag.String("tsn", "", "tuna reverse service name")
+	tunaSubscriptionPrefix := flag.String("tsp", "", "tuna subscription prefix")
 	tunaMaxPrice := flag.String("tuna-max-price", "0.01", "tuna max price in unit of NKN/MB")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
@@ -59,8 +61,10 @@ func main() {
 		}
 
 		tsConfig = &ts.Config{
-			TunaIPFilter: &tuna.IPFilter{Allow: locations},
-			TunaMaxPrice: *tunaMaxPrice,
+			TunaIPFilter:           &tuna.IPFilter{Allow: locations},
+			TunaServiceName:        *tunaServiceName,
+			TunaSubscriptionPrefix: *tunaSubscriptionPrefix,
+			TunaMaxPrice:           *tunaMaxPrice,
 		}
 	}
 
