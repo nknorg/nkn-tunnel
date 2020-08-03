@@ -5,3 +5,6 @@ vendor
 build
 nkn-tunnel
 main
+Tunnel.framework
+tunnel.aar
+tunnel.jar

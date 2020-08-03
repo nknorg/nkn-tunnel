@@ -57,11 +57,14 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, session
 				return nil, err
 			}
 
-			tsConfigCopy := *tsConfig
-			tsConfigCopy.NumTunaListeners = numClients
-			tsConfigCopy.SessionConfig = sessionConfig
+			if tsConfig != nil {
+				tsConfigCopy := *tsConfig
+				tsConfigCopy.NumTunaListeners = numClients
+				tsConfigCopy.SessionConfig = sessionConfig
+				tsConfig = &tsConfigCopy
+			}
 
-			c, err = ts.NewTunaSessionClient(account, m, wallet, &tsConfigCopy)
+			c, err = ts.NewTunaSessionClient(account, m, wallet, tsConfig)
 			if err != nil {
 				return nil, err
 			}
