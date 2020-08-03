@@ -73,12 +73,12 @@ github.com/nknorg/go-nat v1.0.1/go.mod h1:dblX1Ac2j08rTUGs5CKCAfjHGN5eDFhbeqt2rc
 github.com/nknorg/go-portscanner v0.0.0-20181002101859-8493ef01db79 h1:AT5YRim0696HFnGSvFg0uOmSuo1X11roGBQhKB25PHE=
 github.com/nknorg/go-portscanner v0.0.0-20181002101859-8493ef01db79/go.mod h1:lTev9/EZpc4U3w/sp95T8UPeaav/0Hk+JjykVDuPaQs=
 github.com/nknorg/ncp-go v1.0.0/go.mod h1:LfiwrFlKZAAoMwhCBA959jSzVD8E9RGOH9nyfXkQSfY=
-github.com/nknorg/ncp-go v1.0.1 h1:oJKmcaAcVC1oCJiJ4tDvot7kved8uUGBYXldDHxc8vM=
-github.com/nknorg/ncp-go v1.0.1/go.mod h1:LfiwrFlKZAAoMwhCBA959jSzVD8E9RGOH9nyfXkQSfY=
+github.com/nknorg/ncp-go v1.0.2 h1:nZRdfXtbrVEBmhxCfEMu20XZIzk8Wztx4OE47drzIWw=
+github.com/nknorg/ncp-go v1.0.2/go.mod h1:LfiwrFlKZAAoMwhCBA959jSzVD8E9RGOH9nyfXkQSfY=
 github.com/nknorg/nkn-sdk-go v1.3.0 h1:iT/MqUx7VyqVo3ivz3VIBbB+VvaByld0YrQiVIlfdCI=
 github.com/nknorg/nkn-sdk-go v1.3.0/go.mod h1:SeHZ25YcKIXDauhPw/v4XZjprWd+DtLDPNs3/U9/5qE=
-github.com/nknorg/nkn-tuna-session v0.1.1 h1:6xAhgSh8cIfLH24EnpH144IAgl4xi12VCKyBns9hpmE=
-github.com/nknorg/nkn-tuna-session v0.1.1/go.mod h1:PNZEyRe9oJzBRpFql6J95tcJ+remtDuYsapqa4ixRbM=
+github.com/nknorg/nkn-tuna-session v0.1.2 h1:bQnQGNh/owTCaVGKmrBdLjtCFeaGtkGzBx5jsT9J/Do=
+github.com/nknorg/nkn-tuna-session v0.1.2/go.mod h1:f7T74pbExYynxgwJ5qaSgzaZJ11VO0tPzSXfh/lmXJU=
 github.com/nknorg/nkn/v2 v2.0.0-20200703083743-f83cde273fe2 h1:YJL1RuRWLXcjRjm52aPn9JYryS41HBgfQvIVd5kGxZE=
 github.com/nknorg/nkn/v2 v2.0.0-20200703083743-f83cde273fe2/go.mod h1:LxKZTpn5VZTAbjsACSFL5nlQAQ4+WQKyIpVZUYopXm4=
 github.com/nknorg/nkn/v2 v2.0.2 h1:0bwUFFYkeVO6z+Odi52zHQ6IFs254D8GQfX5pfdfe+E=
@@ -87,8 +87,8 @@ github.com/nknorg/nnet v0.0.0-20200521002812-357d1b11179f h1:JvDKr6D9LdnsdScND+8
 github.com/nknorg/nnet v0.0.0-20200521002812-357d1b11179f/go.mod h1:4DHEQEMhlRGIKGSyhATdjeusdqaHafDatadtpeHBpvI=
 github.com/nknorg/portmapper v0.0.0-20200114081049-1c03cdccc283 h1:uS3/DvxCbi0zZau66ggQAgEjyGmql2mj77UQFgumq1I=
 github.com/nknorg/portmapper v0.0.0-20200114081049-1c03cdccc283/go.mod h1:dL4PQJ4670oTO6LqvkjrBQEkD+iMiOYjlKRBBw55Csg=
-github.com/nknorg/tuna v0.0.0-20200729232930-42c0c6547187 h1:fQyuj5rkyQr8OzG5HdmgAhH+/fq7I3XU7c9vMe89Z6k=
-github.com/nknorg/tuna v0.0.0-20200729232930-42c0c6547187/go.mod h1:GhSzMlgyFy9SvT9TCc/UUEGmMiLxPkyeiWaiM0IWT1U=
+github.com/nknorg/tuna v0.0.0-20200803091628-f86c69d40928 h1:bO40M16Zu4pFxjIyc2PG4oTfu2IUeZcWFVEST1VYizA=
+github.com/nknorg/tuna v0.0.0-20200803091628-f86c69d40928/go.mod h1:GhSzMlgyFy9SvT9TCc/UUEGmMiLxPkyeiWaiM0IWT1U=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
