@@ -22,6 +22,7 @@ local_or_with_proxy:
 
 .PHONY: build
 build:
+	rm -rf $(BUILD_DIR)/$(BIN_DIR)
 	mkdir -p $(BUILD_DIR)/$(BIN_DIR)
 	GOOS=$(GOOS) GOARCH=$(GOARCH) $(BUILD) -o $(BUILD_DIR)/$(BIN_DIR)/$(BIN_NAME)$(EXT) $(MAIN)
 	${MAKE} zip
@@ -32,7 +33,7 @@ tar:
 
 .PHONY: zip
 zip:
-	cd $(BUILD_DIR) && rm -f $(BIN_DIR).zip && zip --exclude "*.DS_Store*" --exclude "*__MACOSX*" -r $(BIN_DIR).zip $(BIN_DIR)
+	cd $(BUILD_DIR) && rm -f $(BIN_DIR).zip && zip --symlinks --exclude "*.DS_Store*" --exclude "*__MACOSX*" -r $(BIN_DIR).zip $(BIN_DIR)
 
 .PHONY: all
 all:
@@ -43,8 +44,16 @@ all:
 
 .PHONY: ios
 ios:
+	rm -rf $(BUILD_DIR)/ios Tunnel.framework
+	mkdir -p $(BUILD_DIR)/ios
 	gomobile bind -target=ios -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna
+	mv Tunnel.framework $(BUILD_DIR)/ios/
+	${MAKE} zip BIN_DIR=ios
 
 .PHONY: android
 android:
+	rm -rf $(BUILD_DIR)/android tunnel.aar tunnel-sources.jar
+	mkdir -p $(BUILD_DIR)/android
 	gomobile bind -target=android -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna
+	mv tunnel.aar tunnel-sources.jar $(BUILD_DIR)/android/
+	${MAKE} zip BIN_DIR=android
