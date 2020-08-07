@@ -41,6 +41,7 @@ all:
 	${MAKE} build GOOS=linux GOARCH=amd64
 	${MAKE} build GOOS=linux GOARCH=arm64
 	${MAKE} build GOOS=windows GOARCH=amd64 EXT=.exe
+	${MAKE} build GOOS=windows GOARCH=386 EXT=.exe
 
 .PHONY: ios
 ios:
