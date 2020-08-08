@@ -49,6 +49,8 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, session
 			return nil, err
 		}
 
+		<-m.OnConnect.C
+
 		dialer = m
 
 		if tuna {
