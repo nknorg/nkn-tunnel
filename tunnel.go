@@ -1,7 +1,6 @@
 package tunnel
 
 import (
-	"encoding/hex"
 	"io"
 	"log"
 	"net"
@@ -9,12 +8,12 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/nknorg/ncp-go"
 	nkn "github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 )
 
 type nknDialer interface {
+	Addr() net.Addr
 	Dial(addr string) (net.Conn, error)
 	Close() error
 }
@@ -29,34 +28,29 @@ type Tunnel struct {
 	to        string
 	fromNKN   bool
 	toNKN     bool
+	config    *Config
 	dialer    nknDialer
 	listeners []net.Listener
-	verbose   bool
 
 	lock     sync.RWMutex
 	isClosed bool
 }
 
 // NewTunnel creates a Tunnel client with given options.
-func NewTunnel(numClients int, seed []byte, identifier, from, to string, acceptAddrs *nkn.StringArray, sessionConfig *ncp.Config, tuna bool, tsConfig *ts.Config, verbose bool) (*Tunnel, error) {
+func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, config *Config) (*Tunnel, error) {
+	config, err := MergedConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
 	var m *nkn.MultiClient
 	var c *ts.TunaSessionClient
 	var dialer nknDialer
-	var err error
 
 	if fromNKN || toNKN {
-		account, err := nkn.NewAccount(seed)
-		if err != nil {
-			return nil, err
-		}
-
-		if verbose {
-			log.Println("Seed:", hex.EncodeToString(account.PrivateKey[:32]))
-		}
-
-		m, err = nkn.NewMultiClient(account, identifier, numClients, false, &nkn.ClientConfig{SessionConfig: sessionConfig})
+		m, err = nkn.NewMultiClient(account, identifier, config.NumSubClients, config.OriginalClient, config.ClientConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -66,19 +60,12 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, acceptA
 		dialer = m
 
 		if tuna {
-			wallet, err := nkn.NewWallet(account, nil)
+			wallet, err := nkn.NewWallet(account, config.WalletConfig)
 			if err != nil {
 				return nil, err
 			}
 
-			if tsConfig != nil {
-				tsConfigCopy := *tsConfig
-				tsConfigCopy.NumTunaListeners = numClients
-				tsConfigCopy.SessionConfig = sessionConfig
-				tsConfig = &tsConfigCopy
-			}
-
-			c, err = ts.NewTunaSessionClient(account, m, wallet, tsConfig)
+			c, err = ts.NewTunaSessionClient(account, m, wallet, config.TunaSessionConfig)
 			if err != nil {
 				return nil, err
 			}
@@ -92,13 +79,13 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, acceptA
 	if fromNKN {
 		if tuna {
 			listeners = append(listeners, c)
-			err = c.Listen(acceptAddrs)
+			err = c.Listen(config.AcceptAddrs)
 			if err != nil {
 				return nil, err
 			}
 		}
 		listeners = append(listeners, m)
-		err = m.Listen(acceptAddrs)
+		err = m.Listen(config.AcceptAddrs)
 		if err != nil {
 			return nil, err
 		}
@@ -111,21 +98,37 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, acceptA
 		listeners = append(listeners, listener)
 	}
 
-	log.Println("Listening at", from)
+	if config.Verbose {
+		log.Println("Listening at", from)
+	}
 
 	t := &Tunnel{
 		from:      from,
 		to:        to,
 		fromNKN:   fromNKN,
 		toNKN:     toNKN,
+		config:    config,
 		dialer:    dialer,
 		listeners: listeners,
-		verbose:   verbose,
 	}
 
 	return t, nil
 }
 
+// FromAddr returns the tunnel listening address.
+func (t *Tunnel) FromAddr() string {
+	return t.from
+}
+
+// ToAddr returns the tunnel dialing address.
+func (t *Tunnel) ToAddr() string {
+	return t.to
+}
+
+// SetAcceptAddrs updates the accept address regex for incoming sessions.
+// Tunnel will accept sessions from address that matches any of the given
+// regular expressions. If addrsRe is nil, any address will be accepted. Each
+// function call will overwrite previous accept addresses.
 func (t *Tunnel) SetAcceptAddrs(addrsRe *nkn.StringArray) error {
 	if t.fromNKN {
 		for _, listener := range t.listeners {
@@ -157,7 +160,7 @@ func (t *Tunnel) Start() error {
 					return
 				}
 
-				if t.verbose {
+				if t.config.Verbose {
 					log.Println("Accept from", fromConn.RemoteAddr())
 				}
 
@@ -168,7 +171,7 @@ func (t *Tunnel) Start() error {
 						return
 					}
 
-					if t.verbose {
+					if t.config.Verbose {
 						log.Println("Dial to", toConn.RemoteAddr())
 					}
 
@@ -189,12 +192,14 @@ func (t *Tunnel) Start() error {
 	return err
 }
 
+// IsClosed returns whether the tunnel is closed.
 func (t *Tunnel) IsClosed() bool {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 	return t.isClosed
 }
 
+// Close will close the tunnel.
 func (t *Tunnel) Close() error {
 	t.lock.Lock()
 	defer t.lock.Unlock()
