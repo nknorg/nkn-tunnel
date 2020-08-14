@@ -19,6 +19,10 @@ type nknDialer interface {
 	Close() error
 }
 
+type nknListener interface {
+	Listen(addrsRe *nkn.StringArray) error
+}
+
 // Tunnel is the tunnel client struct.
 type Tunnel struct {
 	from      string
@@ -34,13 +38,13 @@ type Tunnel struct {
 }
 
 // NewTunnel creates a Tunnel client with given options.
-func NewTunnel(numClients int, seed []byte, identifier, from, to string, sessionConfig *ncp.Config, tuna bool, tsConfig *ts.Config, verbose bool) (*Tunnel, error) {
+func NewTunnel(numClients int, seed []byte, identifier, from, to string, acceptAddrs *nkn.StringArray, sessionConfig *ncp.Config, tuna bool, tsConfig *ts.Config, verbose bool) (*Tunnel, error) {
 	fromNKN := strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
 	var m *nkn.MultiClient
 	var c *ts.TunaSessionClient
-	var err error
 	var dialer nknDialer
+	var err error
 
 	if fromNKN || toNKN {
 		account, err := nkn.NewAccount(seed)
@@ -48,7 +52,9 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, session
 			return nil, err
 		}
 
-		log.Println("Seed:", hex.EncodeToString(account.PrivateKey[:32]))
+		if verbose {
+			log.Println("Seed:", hex.EncodeToString(account.PrivateKey[:32]))
+		}
 
 		m, err = nkn.NewMultiClient(account, identifier, numClients, false, &nkn.ClientConfig{SessionConfig: sessionConfig})
 		if err != nil {
@@ -86,13 +92,13 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, session
 	if fromNKN {
 		if tuna {
 			listeners = append(listeners, c)
-			err = c.Listen(nil)
+			err = c.Listen(acceptAddrs)
 			if err != nil {
 				return nil, err
 			}
 		}
 		listeners = append(listeners, m)
-		err = m.Listen(nil)
+		err = m.Listen(acceptAddrs)
 		if err != nil {
 			return nil, err
 		}
@@ -118,6 +124,18 @@ func NewTunnel(numClients int, seed []byte, identifier, from, to string, session
 	}
 
 	return t, nil
+}
+
+func (t *Tunnel) SetAcceptAddrs(addrsRe *nkn.StringArray) error {
+	if t.fromNKN {
+		for _, listener := range t.listeners {
+			err := listener.(nknListener).Listen(addrsRe)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Tunnel) dial(addr string) (net.Conn, error) {
