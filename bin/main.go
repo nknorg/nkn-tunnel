@@ -22,7 +22,7 @@ func main() {
 	numClients := flag.Int("n", 4, "number of clients")
 	seedHex := flag.String("s", "", "secret seed")
 	identifier := flag.String("i", "", "NKN address identifier")
-	from := flag.String("from", "", "from address (\"nkn\" or ip:port)")
+	from := flag.String("from", "", `from address ("nkn" or ip:port)`)
 	to := flag.String("to", "", "to address (nkn address or ip:port)")
 	acceptAddr := flag.String("accept", "", "accept incoming nkn address regex, separated by comma")
 	useTuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
@@ -31,6 +31,7 @@ func main() {
 	tunaSubscriptionPrefix := flag.String("tsp", "", "tuna subscription prefix")
 	tunaMaxPrice := flag.String("tuna-max-price", "0.01", "tuna max price in unit of NKN/MB")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
+	rpcAddr := flag.String("rpc", "", "Seed RPC server address, separated by comma")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
 	version := flag.Bool("version", false, "print version")
 
@@ -64,8 +65,21 @@ func main() {
 		acceptAddrs = nkn.NewStringArrayFromString(strings.ReplaceAll(*acceptAddr, ",", " "))
 	}
 
-	sessionConfig := &ncp.Config{MTU: int32(*mtu)}
-	clientConfig := &nkn.ClientConfig{SessionConfig: sessionConfig}
+	var seedRPCServerAddr *nkn.StringArray
+	if len(*rpcAddr) > 0 {
+		seedRPCServerAddr = nkn.NewStringArrayFromString(strings.ReplaceAll(*rpcAddr, ",", " "))
+	}
+
+	sessionConfig := &ncp.Config{
+		MTU: int32(*mtu),
+	}
+	clientConfig := &nkn.ClientConfig{
+		SeedRPCServerAddr: seedRPCServerAddr,
+		SessionConfig:     sessionConfig,
+	}
+	walletConfig := &nkn.WalletConfig{
+		SeedRPCServerAddr: seedRPCServerAddr,
+	}
 
 	var tsConfig *ts.Config
 	if *useTuna {
@@ -89,6 +103,7 @@ func main() {
 		NumSubClients:     *numClients,
 		AcceptAddrs:       acceptAddrs,
 		ClientConfig:      clientConfig,
+		WalletConfig:      walletConfig,
 		TunaSessionConfig: tsConfig,
 		Verbose:           *verbose,
 	}
