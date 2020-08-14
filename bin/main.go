@@ -54,10 +54,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	account, err := nkn.NewAccount(seed)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var acceptAddrs *nkn.StringArray
 	if len(*acceptAddr) > 0 {
 		acceptAddrs = nkn.NewStringArrayFromString(strings.ReplaceAll(*acceptAddr, ",", " "))
 	}
+
+	sessionConfig := &ncp.Config{MTU: int32(*mtu)}
+	clientConfig := &nkn.ClientConfig{SessionConfig: sessionConfig}
 
 	var tsConfig *ts.Config
 	if *useTuna {
@@ -68,6 +76,8 @@ func main() {
 		}
 
 		tsConfig = &ts.Config{
+			NumTunaListeners:       *numClients,
+			SessionConfig:          sessionConfig,
 			TunaIPFilter:           &tuna.IPFilter{Allow: locations},
 			TunaServiceName:        *tunaServiceName,
 			TunaSubscriptionPrefix: *tunaSubscriptionPrefix,
@@ -75,7 +85,15 @@ func main() {
 		}
 	}
 
-	t, err := tunnel.NewTunnel(*numClients, seed, *identifier, *from, *to, acceptAddrs, &ncp.Config{MTU: int32(*mtu)}, *useTuna, tsConfig, *verbose)
+	config := &tunnel.Config{
+		NumSubClients:     *numClients,
+		AcceptAddrs:       acceptAddrs,
+		ClientConfig:      clientConfig,
+		TunaSessionConfig: tsConfig,
+		Verbose:           *verbose,
+	}
+
+	t, err := tunnel.NewTunnel(account, *identifier, *from, *to, *useTuna, config)
 	if err != nil {
 		log.Fatal(err)
 	}
