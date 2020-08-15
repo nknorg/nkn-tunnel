@@ -43,7 +43,7 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 		return nil, err
 	}
 
-	fromNKN := strings.ToLower(from) == "nkn"
+	fromNKN := len(from) == 0 || strings.ToLower(from) == "nkn"
 	toNKN := !strings.Contains(to, ":")
 	var m *nkn.MultiClient
 	var c *ts.TunaSessionClient
