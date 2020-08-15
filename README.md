@@ -56,7 +56,7 @@ go build -o nkn-tunnel bin/main.go
 "Server" side:
 
 ```shell
-./nkn-tunnel -from nkn -to 127.0.0.1:8080 -s <seed>
+./nkn-tunnel -to 127.0.0.1:8080 -s <seed>
 ```
 
 and you will see an output like `Listening at xxx` where `xxx` is the server

@@ -22,8 +22,8 @@ func main() {
 	numClients := flag.Int("n", 4, "number of clients")
 	seedHex := flag.String("s", "", "secret seed")
 	identifier := flag.String("i", "", "NKN address identifier")
-	from := flag.String("from", "", `from address ("nkn" or ip:port)`)
-	to := flag.String("to", "", "to address (nkn address or ip:port)")
+	from := flag.String("from", "", `listening at address (omitted or "nkn" for listening on nkn address, ip:port for tcp address)`)
+	to := flag.String("to", "", "dialing to address (nkn address or ip:port)")
 	acceptAddr := flag.String("accept", "", "accept incoming nkn address regex, separated by comma")
 	useTuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
 	tunaCountry := flag.String("country", "", `tuna service node allowed country code, separated by comma, e.g. "US" or "US,CN"`)
@@ -40,10 +40,6 @@ func main() {
 	if *version {
 		fmt.Println(Version)
 		return
-	}
-
-	if len(*from) == 0 {
-		log.Fatal("From address is empty")
 	}
 
 	if len(*to) == 0 {
