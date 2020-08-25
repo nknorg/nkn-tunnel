@@ -125,6 +125,11 @@ func (t *Tunnel) ToAddr() string {
 	return t.to
 }
 
+// Addr returns the tunnel NKN address.
+func (t *Tunnel) Addr() net.Addr {
+	return t.dialer.Addr()
+}
+
 // SetAcceptAddrs updates the accept address regex for incoming sessions.
 // Tunnel will accept sessions from address that matches any of the given
 // regular expressions. If addrsRe is nil, any address will be accepted. Each
