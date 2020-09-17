@@ -130,6 +130,17 @@ func (t *Tunnel) Addr() net.Addr {
 	return t.dialer.Addr()
 }
 
+// TunaPubAddrs returns the public node info of tuna listeners. Returns nil if
+// there is no tuna listener.
+func (t *Tunnel) TunaPubAddrs() *ts.PubAddrs {
+	for _, listener := range t.listeners {
+		if c, ok := listener.(*ts.TunaSessionClient); ok {
+			return c.GetPubAddrs()
+		}
+	}
+	return nil
+}
+
 // SetAcceptAddrs updates the accept address regex for incoming sessions.
 // Tunnel will accept sessions from address that matches any of the given
 // regular expressions. If addrsRe is nil, any address will be accepted. Each
