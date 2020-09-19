@@ -40,6 +40,9 @@ all:
 	${MAKE} build GOOS=darwin GOARCH=amd64
 	${MAKE} build GOOS=linux GOARCH=amd64
 	${MAKE} build GOOS=linux GOARCH=arm64
+	${MAKE} build GOOS=linux GOARCH=arm GOARM=5
+	${MAKE} build GOOS=linux GOARCH=arm GOARM=6
+	${MAKE} build GOOS=linux GOARCH=arm GOARM=7
 	${MAKE} build GOOS=windows GOARCH=amd64 EXT=.exe
 	${MAKE} build GOOS=windows GOARCH=386 EXT=.exe
 
