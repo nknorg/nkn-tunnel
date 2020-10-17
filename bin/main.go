@@ -11,7 +11,7 @@ import (
 	"github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	tunnel "github.com/nknorg/nkn-tunnel"
-	"github.com/nknorg/tuna"
+	"github.com/nknorg/tuna/geo"
 )
 
 var (
@@ -30,6 +30,8 @@ func main() {
 	tunaServiceName := flag.String("tsn", "", "tuna reverse service name")
 	tunaSubscriptionPrefix := flag.String("tsp", "", "tuna subscription prefix")
 	tunaMaxPrice := flag.String("tuna-max-price", "0.01", "tuna max price in unit of NKN/MB")
+	tunaDownloadGeoDB := flag.Bool("tuna-download-geo-db", false, "download tuna geo db to disk")
+	tunaGeoDBPath := flag.String("tuna-geo-db-path", ".", "path to store tuna geo db")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	rpcAddr := flag.String("rpc", "", "Seed RPC server address, separated by comma")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
@@ -80,7 +82,7 @@ func main() {
 	var tsConfig *ts.Config
 	if *useTuna {
 		countries := strings.Split(*tunaCountry, ",")
-		locations := make([]tuna.Location, len(countries))
+		locations := make([]geo.Location, len(countries))
 		for i := range countries {
 			locations[i].CountryCode = strings.TrimSpace(countries[i])
 		}
@@ -88,10 +90,12 @@ func main() {
 		tsConfig = &ts.Config{
 			NumTunaListeners:       *numClients,
 			SessionConfig:          sessionConfig,
-			TunaIPFilter:           &tuna.IPFilter{Allow: locations},
+			TunaIPFilter:           &geo.IPFilter{Allow: locations},
 			TunaServiceName:        *tunaServiceName,
 			TunaSubscriptionPrefix: *tunaSubscriptionPrefix,
 			TunaMaxPrice:           *tunaMaxPrice,
+			TunaDownloadGeoDB:      *tunaDownloadGeoDB,
+			TunaGeoDBPath:          *tunaGeoDBPath,
 		}
 	}
 
