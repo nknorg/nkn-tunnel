@@ -4,9 +4,13 @@ USE_PROXY=GOPROXY=https://goproxy.io
 VERSION:=$(shell git describe --abbrev=7 --dirty --always --tags)
 BUILD=go build -ldflags "-s -w -X main.Version=$(VERSION)"
 BUILD_DIR=build
-BIN_DIR=$(GOOS)-$(GOARCH)
 BIN_NAME=nkn-tunnel
 MAIN=bin/main.go
+ifdef GOARM
+BIN_DIR=$(GOOS)-$(GOARCH)v$(GOARM)
+else
+BIN_DIR=$(GOOS)-$(GOARCH)
+endif
 
 .PHONY: local
 local:
