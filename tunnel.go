@@ -24,13 +24,15 @@ type nknListener interface {
 
 // Tunnel is the tunnel client struct.
 type Tunnel struct {
-	from      string
-	to        string
-	fromNKN   bool
-	toNKN     bool
-	config    *Config
-	dialer    nknDialer
-	listeners []net.Listener
+	from        string
+	to          string
+	fromNKN     bool
+	toNKN       bool
+	config      *Config
+	dialer      nknDialer
+	listeners   []net.Listener
+	multiClient *nkn.MultiClient
+	tsClient    *ts.TunaSessionClient
 
 	lock     sync.RWMutex
 	isClosed bool
@@ -103,13 +105,15 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 	}
 
 	t := &Tunnel{
-		from:      from,
-		to:        to,
-		fromNKN:   fromNKN,
-		toNKN:     toNKN,
-		config:    config,
-		dialer:    dialer,
-		listeners: listeners,
+		from:        from,
+		to:          to,
+		fromNKN:     fromNKN,
+		toNKN:       toNKN,
+		config:      config,
+		dialer:      dialer,
+		listeners:   listeners,
+		multiClient: m,
+		tsClient:    c,
 	}
 
 	return t, nil
@@ -128,6 +132,17 @@ func (t *Tunnel) ToAddr() string {
 // Addr returns the tunnel NKN address.
 func (t *Tunnel) Addr() net.Addr {
 	return t.dialer.Addr()
+}
+
+// MultiClient returns the NKN multiclient that tunnel creates and uses.
+func (t *Tunnel) MultiClient() *nkn.MultiClient {
+	return t.multiClient
+}
+
+// TunaSessionClient returns the tuna session client that tunnel creates and
+// uses. It is not nil only if tunnel is created with tuna == true.
+func (t *Tunnel) TunaSessionClient() *ts.TunaSessionClient {
+	return t.tsClient
 }
 
 // TunaPubAddrs returns the public node info of tuna listeners. Returns nil if
