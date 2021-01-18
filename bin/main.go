@@ -32,6 +32,7 @@ func main() {
 	tunaMaxPrice := flag.String("tuna-max-price", "0.01", "tuna max price in unit of NKN/MB")
 	tunaDownloadGeoDB := flag.Bool("tuna-download-geo-db", false, "download tuna geo db to disk")
 	tunaGeoDBPath := flag.String("tuna-geo-db-path", ".", "path to store tuna geo db")
+	tunaMeasureBandwidth := flag.Bool("tuna-measure-bandwidth", false, "tuna measure bandwidth")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	rpcAddr := flag.String("rpc", "", "Seed RPC server address, separated by comma")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
@@ -96,6 +97,7 @@ func main() {
 			TunaMaxPrice:           *tunaMaxPrice,
 			TunaDownloadGeoDB:      *tunaDownloadGeoDB,
 			TunaGeoDBPath:          *tunaGeoDBPath,
+			TunaMeasureBandwidth:   *tunaMeasureBandwidth,
 		}
 	}
 
