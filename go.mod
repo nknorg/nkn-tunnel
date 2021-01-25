@@ -6,7 +6,7 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/imdario/mergo v0.3.9
 	github.com/nknorg/ncp-go v1.0.3
-	github.com/nknorg/nkn-sdk-go v1.3.4-0.20201020100539-187d9201bdfe
-	github.com/nknorg/nkn-tuna-session v0.2.1-0.20210121074107-3cd9c2846f0e
-	github.com/nknorg/tuna v0.0.0-20210121073946-6044a315b69e
+	github.com/nknorg/nkn-sdk-go v1.3.5-0.20210122112757-1388e8cb9351
+	github.com/nknorg/nkn-tuna-session v0.2.1-0.20210125115758-ade7ed996fa0
+	github.com/nknorg/tuna v0.0.0-20210125094553-9a037252e9e5
 )
