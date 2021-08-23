@@ -100,9 +100,7 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 		listeners = append(listeners, listener)
 	}
 
-	if config.Verbose {
-		log.Println("Listening at", from)
-	}
+	log.Println("Listening at", from)
 
 	t := &Tunnel{
 		from:        from,
