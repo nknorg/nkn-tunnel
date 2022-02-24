@@ -52,16 +52,16 @@ all:
 
 .PHONY: ios
 ios:
-	rm -rf $(BUILD_DIR)/ios Tunnel.framework
+	rm -rf $(BUILD_DIR)/ios Tunnel.xcframework
 	mkdir -p $(BUILD_DIR)/ios
-	gomobile bind -target=ios -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna github.com/nknorg/nkn-sdk-go
-	mv Tunnel.framework $(BUILD_DIR)/ios/
+	gomobile bind -target=ios -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna github.com/nknorg/nkn-sdk-go github.com/nknorg/nkngomobile
+	mv Tunnel.xcframework $(BUILD_DIR)/ios/
 	${MAKE} zip BIN_DIR=ios
 
 .PHONY: android
 android:
 	rm -rf $(BUILD_DIR)/android tunnel.aar tunnel-sources.jar
 	mkdir -p $(BUILD_DIR)/android
-	gomobile bind -target=android -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna github.com/nknorg/nkn-sdk-go
+	gomobile bind -target=android -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna github.com/nknorg/nkn-sdk-go github.com/nknorg/nkngomobile
 	mv tunnel.aar tunnel-sources.jar $(BUILD_DIR)/android/
 	${MAKE} zip BIN_DIR=android
