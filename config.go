@@ -4,12 +4,13 @@ import (
 	"github.com/imdario/mergo"
 	nkn "github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
+	"github.com/nknorg/nkngomobile"
 )
 
 type Config struct {
 	NumSubClients     int
 	OriginalClient    bool
-	AcceptAddrs       *nkn.StringArray
+	AcceptAddrs       *nkngomobile.StringArray
 	ClientConfig      *nkn.ClientConfig
 	WalletConfig      *nkn.WalletConfig
 	TunaSessionConfig *ts.Config

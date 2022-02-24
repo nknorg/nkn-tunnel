@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	nkn "github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
+	"github.com/nknorg/nkngomobile"
 )
 
 type nknDialer interface {
@@ -19,7 +20,7 @@ type nknDialer interface {
 }
 
 type nknListener interface {
-	Listen(addrsRe *nkn.StringArray) error
+	Listen(addrsRe *nkngomobile.StringArray) error
 }
 
 // Tunnel is the tunnel client struct.
@@ -158,7 +159,7 @@ func (t *Tunnel) TunaPubAddrs() *ts.PubAddrs {
 // Tunnel will accept sessions from address that matches any of the given
 // regular expressions. If addrsRe is nil, any address will be accepted. Each
 // function call will overwrite previous accept addresses.
-func (t *Tunnel) SetAcceptAddrs(addrsRe *nkn.StringArray) error {
+func (t *Tunnel) SetAcceptAddrs(addrsRe *nkngomobile.StringArray) error {
 	if t.fromNKN {
 		for _, listener := range t.listeners {
 			err := listener.(nknListener).Listen(addrsRe)

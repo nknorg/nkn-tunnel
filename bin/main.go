@@ -11,6 +11,7 @@ import (
 	"github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	tunnel "github.com/nknorg/nkn-tunnel"
+	"github.com/nknorg/nkngomobile"
 	"github.com/nknorg/tuna/geo"
 )
 
@@ -59,12 +60,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var acceptAddrs *nkn.StringArray
+	var acceptAddrs *nkngomobile.StringArray
 	if len(*acceptAddr) > 0 {
 		acceptAddrs = nkn.NewStringArrayFromString(strings.ReplaceAll(*acceptAddr, ",", " "))
 	}
 
-	var seedRPCServerAddr *nkn.StringArray
+	var seedRPCServerAddr *nkngomobile.StringArray
 	if len(*rpcAddr) > 0 {
 		seedRPCServerAddr = nkn.NewStringArrayFromString(strings.ReplaceAll(*rpcAddr, ",", " "))
 	}
