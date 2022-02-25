@@ -25,6 +25,7 @@ func main() {
 	identifier := flag.String("i", "", "NKN address identifier")
 	from := flag.String("from", "", `listening at address (omitted or "nkn" for listening on nkn address, ip:port for tcp address)`)
 	to := flag.String("to", "", "dialing to address (nkn address or ip:port)")
+	dialTimeout := flag.Int("t", 0, "dial timeout in milliseconds")
 	acceptAddr := flag.String("accept", "", "accept incoming nkn address regex, separated by comma")
 	useTuna := flag.Bool("tuna", false, "use tuna instead of nkn client for nkn session")
 	tunaCountry := flag.String("country", "", `tuna service node allowed country code, separated by comma, e.g. "US" or "US,CN"`)
@@ -80,6 +81,9 @@ func main() {
 	walletConfig := &nkn.WalletConfig{
 		SeedRPCServerAddr: seedRPCServerAddr,
 	}
+	dialConfig := &nkn.DialConfig{
+		DialTimeout: int32(*dialTimeout),
+	}
 
 	var tsConfig *ts.Config
 	if *useTuna {
@@ -107,6 +111,7 @@ func main() {
 		AcceptAddrs:       acceptAddrs,
 		ClientConfig:      clientConfig,
 		WalletConfig:      walletConfig,
+		DialConfig:        dialConfig,
 		TunaSessionConfig: tsConfig,
 		Verbose:           *verbose,
 	}

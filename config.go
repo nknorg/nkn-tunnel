@@ -13,6 +13,7 @@ type Config struct {
 	AcceptAddrs       *nkngomobile.StringArray
 	ClientConfig      *nkn.ClientConfig
 	WalletConfig      *nkn.WalletConfig
+	DialConfig        *nkn.DialConfig
 	TunaSessionConfig *ts.Config
 	Verbose           bool
 }
@@ -23,6 +24,7 @@ var defaultConfig = Config{
 	AcceptAddrs:       nil,
 	ClientConfig:      nil,
 	WalletConfig:      nil,
+	DialConfig:        nil,
 	TunaSessionConfig: nil,
 	Verbose:           false,
 }
