@@ -6,8 +6,10 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/nknorg/ncp-go"
 	nkn "github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	"github.com/nknorg/nkngomobile"
@@ -16,6 +18,7 @@ import (
 type nknDialer interface {
 	Addr() net.Addr
 	Dial(addr string) (net.Conn, error)
+	DialWithConfig(addr string, config *nkn.DialConfig) (*ncp.Session, error)
 	Close() error
 }
 
@@ -173,9 +176,13 @@ func (t *Tunnel) SetAcceptAddrs(addrsRe *nkngomobile.StringArray) error {
 
 func (t *Tunnel) dial(addr string) (net.Conn, error) {
 	if t.toNKN {
-		return t.dialer.Dial(addr)
+		return t.dialer.DialWithConfig(addr, t.config.DialConfig)
 	}
-	return net.Dial("tcp", addr)
+	var dialTimeout time.Duration
+	if t.config.DialConfig != nil {
+		dialTimeout = time.Duration(t.config.DialConfig.DialTimeout) * time.Millisecond
+	}
+	return net.DialTimeout("tcp", addr, dialTimeout)
 }
 
 // Start starts the tunnel and will return on error.
@@ -198,6 +205,7 @@ func (t *Tunnel) Start() error {
 					toConn, err := t.dial(t.to)
 					if err != nil {
 						log.Println(err)
+						fromConn.Close()
 						return
 					}
 
