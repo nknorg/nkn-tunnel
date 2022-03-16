@@ -32,6 +32,8 @@ func main() {
 	tunaServiceName := flag.String("tsn", "", "tuna reverse service name")
 	tunaSubscriptionPrefix := flag.String("tsp", "", "tuna subscription prefix")
 	tunaMaxPrice := flag.String("tuna-max-price", "0.01", "tuna max price in unit of NKN/MB")
+	tunaMinFee := flag.String("tuna-min-fee", "0.00001", "tuna nanopay minimal txn fee")
+	tunaFeeRatio := flag.Float64("tuna-fee-ratio", 0.1, "tuna nanopay txn fee ratio")
 	tunaDownloadGeoDB := flag.Bool("tuna-download-geo-db", false, "download tuna geo db to disk")
 	tunaGeoDBPath := flag.String("tuna-geo-db-path", ".", "path to store tuna geo db")
 	tunaMeasureBandwidth := flag.Bool("tuna-measure-bandwidth", false, "tuna measure bandwidth")
@@ -100,6 +102,8 @@ func main() {
 			TunaServiceName:        *tunaServiceName,
 			TunaSubscriptionPrefix: *tunaSubscriptionPrefix,
 			TunaMaxPrice:           *tunaMaxPrice,
+			TunaMinNanoPayFee:      *tunaMinFee,
+			TunaNanoPayFeeRatio:    *tunaFeeRatio,
 			TunaDownloadGeoDB:      *tunaDownloadGeoDB,
 			TunaGeoDBPath:          *tunaGeoDBPath,
 			TunaMeasureBandwidth:   *tunaMeasureBandwidth,

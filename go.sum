@@ -253,8 +253,8 @@ github.com/nknorg/ncp-go v1.0.4-0.20220224111535-206abfb10fe8/go.mod h1:ALtnk9lK
 github.com/nknorg/nkn-sdk-go v1.3.7/go.mod h1:JSksFP+VQ0S54Ztiht6WHC3tNZklcGg+JaxENuFnqRc=
 github.com/nknorg/nkn-sdk-go v1.4.0 h1:1rBhjLBfAoOWIkvV837nkjQ9CdTa+X1kmR8a1kLhGtM=
 github.com/nknorg/nkn-sdk-go v1.4.0/go.mod h1:/2FtpRM4mWpze03V8FIoESQCa6wCdPRPQO9HqpIMNYw=
-github.com/nknorg/nkn-tuna-session v0.2.4 h1:hUPkLXZQ/PLx+QckHctoERn8XymtrjYKDGEiNpctuQU=
-github.com/nknorg/nkn-tuna-session v0.2.4/go.mod h1:KhlcmTIZW8U+5A5/jwpOp6kOJrFZDsqQiKlQmD5p9+s=
+github.com/nknorg/nkn-tuna-session v0.2.5-0.20220316092834-0446308e0a84 h1:Dy27irtZ1+CEy7pNRqrMCkIfuGvusIKkMM611dw+xm4=
+github.com/nknorg/nkn-tuna-session v0.2.5-0.20220316092834-0446308e0a84/go.mod h1:KhlcmTIZW8U+5A5/jwpOp6kOJrFZDsqQiKlQmD5p9+s=
 github.com/nknorg/nkn/v2 v2.0.6/go.mod h1:cXl2WTv72trEXKJiNH0dCMygMtL8nJne07dWajDlRIo=
 github.com/nknorg/nkn/v2 v2.1.7/go.mod h1:4xzrHJCI/FDFZmlt606Mn9ScKY4UUCFoaWydL1TzQRs=
 github.com/nknorg/nkn/v2 v2.1.8 h1:h25rqQ0E8CvlN8Jm4zF6CBBLgwdoSS7HHdrU4ZYcmjA=
