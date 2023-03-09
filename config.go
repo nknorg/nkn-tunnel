@@ -2,7 +2,7 @@ package tunnel
 
 import (
 	"github.com/imdario/mergo"
-	nkn "github.com/nknorg/nkn-sdk-go"
+	"github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	"github.com/nknorg/nkngomobile"
 )
@@ -15,6 +15,7 @@ type Config struct {
 	WalletConfig      *nkn.WalletConfig
 	DialConfig        *nkn.DialConfig
 	TunaSessionConfig *ts.Config
+	Udp               bool
 	Verbose           bool
 }
 
@@ -26,6 +27,7 @@ var defaultConfig = Config{
 	WalletConfig:      nil,
 	DialConfig:        nil,
 	TunaSessionConfig: nil,
+	Udp:               false,
 	Verbose:           false,
 }
 
