@@ -39,6 +39,7 @@ func main() {
 	tunaMeasureBandwidth := flag.Bool("tuna-measure-bandwidth", false, "tuna measure bandwidth")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	rpcAddr := flag.String("rpc", "", "Seed RPC server address, separated by comma")
+	udp := flag.Bool("udp", false, "support udp")
 	verbose := flag.Bool("v", false, "show logs on dialing/accepting connection")
 	version := flag.Bool("version", false, "print version")
 
@@ -117,6 +118,7 @@ func main() {
 		WalletConfig:      walletConfig,
 		DialConfig:        dialConfig,
 		TunaSessionConfig: tsConfig,
+		Udp:               *udp,
 		Verbose:           *verbose,
 	}
 

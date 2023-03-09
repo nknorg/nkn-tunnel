@@ -1,16 +1,18 @@
 package tunnel
 
 import (
+	"github.com/nknorg/tuna"
 	"io"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/nknorg/ncp-go"
-	nkn "github.com/nknorg/nkn-sdk-go"
+	"github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	"github.com/nknorg/nkngomobile"
 )
@@ -18,12 +20,46 @@ import (
 type nknDialer interface {
 	Addr() net.Addr
 	Dial(addr string) (net.Conn, error)
+	DialUDP(remoteAddr string) (*tuna.EncryptUDPConn, error)
 	DialWithConfig(addr string, config *nkn.DialConfig) (*ncp.Session, error)
+	DialUDPWithConfig(remoteAddr string, config *nkn.DialConfig) (*tuna.EncryptUDPConn, error)
 	Close() error
 }
 
 type nknListener interface {
 	Listen(addrsRe *nkngomobile.StringArray) error
+}
+
+type multiClientDialer struct {
+	c *nkn.MultiClient
+}
+
+func newMultiClientDialer(client *nkn.MultiClient) *multiClientDialer {
+	return &multiClientDialer{c: client}
+}
+
+func (m *multiClientDialer) Addr() net.Addr {
+	return m.c.Addr()
+}
+
+func (m *multiClientDialer) Dial(addr string) (net.Conn, error) {
+	return m.c.Dial(addr)
+}
+
+func (m *multiClientDialer) DialUDP(remoteAddr string) (*tuna.EncryptUDPConn, error) {
+	return nil, nil
+}
+
+func (m *multiClientDialer) DialWithConfig(addr string, config *nkn.DialConfig) (*ncp.Session, error) {
+	return m.c.DialWithConfig(addr, config)
+}
+
+func (m *multiClientDialer) DialUDPWithConfig(remoteAddr string, config *nkn.DialConfig) (*tuna.EncryptUDPConn, error) {
+	return nil, nil
+}
+
+func (m *multiClientDialer) Close() error {
+	return m.c.Close()
 }
 
 // Tunnel is the tunnel client struct.
@@ -37,8 +73,11 @@ type Tunnel struct {
 	listeners   []net.Listener
 	multiClient *nkn.MultiClient
 	tsClient    *ts.TunaSessionClient
+	fromUDPConn *tuna.EncryptUDPConn
+	toUDPConn   *tuna.EncryptUDPConn
 
 	lock     sync.RWMutex
+	udpLock  sync.RWMutex
 	isClosed bool
 }
 
@@ -63,7 +102,7 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 
 		<-m.OnConnect.C
 
-		dialer = m
+		dialer = newMultiClientDialer(m)
 
 		if tuna {
 			wallet, err := nkn.NewWallet(account, config.WalletConfig)
@@ -158,7 +197,7 @@ func (t *Tunnel) TunaPubAddrs() *ts.PubAddrs {
 	return nil
 }
 
-// SetAcceptAddrs updates the accept address regex for incoming sessions.
+// SetAcceptAddrs updates to accept address regex for incoming sessions.
 // Tunnel will accept sessions from address that matches any of the given
 // regular expressions. If addrsRe is nil, any address will be accepted. Each
 // function call will overwrite previous accept addresses.
@@ -185,9 +224,36 @@ func (t *Tunnel) dial(addr string) (net.Conn, error) {
 	return net.DialTimeout("tcp", addr, dialTimeout)
 }
 
+func (t *Tunnel) dialUDP(addr string) (*tuna.EncryptUDPConn, error) {
+	if t.toNKN {
+		conn, err := t.dialer.DialUDPWithConfig(addr, t.config.DialConfig)
+		if err != nil {
+			return nil, err
+		}
+		return conn, nil
+	}
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return nil, err
+	}
+	udpAddr := net.UDPAddr{IP: net.ParseIP(host), Port: port}
+	conn, err := net.DialUDP("udp", nil, &udpAddr)
+	if err != nil {
+		return nil, err
+	}
+	return tuna.NewEncryptUDPConn(conn), nil
+}
+
 // Start starts the tunnel and will return on error.
 func (t *Tunnel) Start() error {
 	errChan := make(chan error, 2)
+	remoteAddr := new(net.UDPAddr)
+	var err error
+
 	for _, listener := range t.listeners {
 		go func(listener net.Listener) {
 			for {
@@ -197,9 +263,7 @@ func (t *Tunnel) Start() error {
 					return
 				}
 
-				if t.config.Verbose {
-					log.Println("Accept from", fromConn.RemoteAddr())
-				}
+				log.Println("Accept from", fromConn.RemoteAddr())
 
 				go func(fromConn net.Conn) {
 					toConn, err := t.dial(t.to)
@@ -209,9 +273,7 @@ func (t *Tunnel) Start() error {
 						return
 					}
 
-					if t.config.Verbose {
-						log.Println("Dial to", toConn.RemoteAddr())
-					}
+					log.Println("Dial to", toConn.RemoteAddr())
 
 					pipe(fromConn, toConn)
 				}(fromConn)
@@ -219,7 +281,83 @@ func (t *Tunnel) Start() error {
 		}(listener)
 	}
 
-	err := <-errChan
+	if t.config.Udp {
+		var fromUDPConn tuna.UDPConn
+		if t.fromNKN {
+			if c, ok := t.listeners[0].(*ts.TunaSessionClient); ok {
+				fromUDPConn, err = c.ListenUDP(t.config.AcceptAddrs)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			_, portStr, err := net.SplitHostPort(t.listeners[0].Addr().String())
+			if err != nil {
+				return err
+			}
+			port, err := strconv.Atoi(portStr)
+			if err != nil {
+				return err
+			}
+			udpAddr := &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: port}
+			fromUDPConn, err = net.ListenUDP("udp", udpAddr)
+			if err != nil {
+				return err
+			}
+		}
+
+		toUDPConn, err := t.GetToUDPConn(true)
+		if err != nil {
+			return err
+		}
+
+		go func() {
+			msg := make([]byte, tuna.MaxUDPBufferSize)
+			var n int
+			for {
+				n, remoteAddr, err = fromUDPConn.ReadFromUDP(msg)
+				if err != nil {
+					log.Println("readFromUDP err:", err)
+					continue
+				}
+				n, _, err = toUDPConn.WriteMsgUDP(msg[:n], nil, nil)
+				if err != nil {
+					log.Println("writeMsgUDP err:", err)
+					toUDPConn, err = t.GetToUDPConn(true)
+					if err != nil {
+						log.Println("GetToUDPConn err:", err)
+					}
+					continue
+				}
+			}
+		}()
+
+		go func() {
+			buf := make([]byte, tuna.MaxUDPBufferSize)
+			for {
+				toUDPConn, err = t.GetToUDPConn(false)
+				if err != nil {
+					return
+				}
+				n, _, err := toUDPConn.ReadFromUDP(buf[:])
+				if err != nil {
+					log.Println("readFromUDP err:", err)
+					toUDPConn, err = t.GetToUDPConn(true)
+					if err != nil {
+						log.Println("GetToUDPConn err:", err)
+					}
+					continue
+				}
+				n, _, err = fromUDPConn.WriteMsgUDP(buf[:n], nil, remoteAddr)
+				if err != nil {
+					log.Println("writeMsgUDP err:", err)
+					continue
+				}
+			}
+		}()
+	}
+
+	err = <-errChan
 
 	if t.IsClosed() {
 		return nil
@@ -263,6 +401,19 @@ func (t *Tunnel) Close() error {
 	t.isClosed = true
 
 	return errs
+}
+
+func (t *Tunnel) GetToUDPConn(force bool) (*tuna.EncryptUDPConn, error) {
+	t.udpLock.Lock()
+	defer t.udpLock.Unlock()
+	if force {
+		conn, err := t.dialUDP(t.to)
+		if err != nil {
+			return nil, err
+		}
+		t.toUDPConn = conn
+	}
+	return t.toUDPConn, nil
 }
 
 func pipe(a, b net.Conn) {
