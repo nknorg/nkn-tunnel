@@ -1,0 +1,30 @@
+{
+  "services": {
+    "test": {
+      "maxPrice": "0.001",
+      "ipFilter": {
+        "allow": [
+          {"countryCode": ""}
+        ],
+        "disallow": [
+          {"countryCode": ""}
+        ]
+      }
+    }
+  },
+  "downloadGeoDB": false,
+  "geoDBPath": ".",
+  "dialTimeout": 10,
+  "udpTimeout": 0,
+  "nanoPayFee": "",
+  "minNanoPayFee": "0.00001",
+  "nanoPayFeeRatio": 0.1,
+  "reverse": true,
+  "reverseBeneficiaryAddr": "",
+  "reverseTCP": 30020,
+  "reverseUDP": 30021,
+  "reversePrice": "0.0",
+  "reverseClaimInterval": 3600,
+  "reverseSubscriptionDuration": 40000,
+  "reverseSubscriptionFee": "0.0"
+}
