@@ -5,6 +5,7 @@ import (
 	"github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	"github.com/nknorg/nkngomobile"
+	"github.com/nknorg/tuna/types"
 )
 
 type Config struct {
@@ -17,6 +18,7 @@ type Config struct {
 	TunaSessionConfig *ts.Config
 	Udp               bool
 	Verbose           bool
+	TunaNode          *types.Node
 }
 
 var defaultConfig = Config{
