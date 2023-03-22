@@ -123,6 +123,9 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 
 	if fromNKN {
 		if tuna {
+			if config.TunaNode != nil {
+				c.SetTunaNode(config.TunaNode)
+			}
 			listeners = append(listeners, c)
 			err = c.Listen(config.AcceptAddrs)
 			if err != nil {
