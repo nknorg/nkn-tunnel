@@ -9,17 +9,14 @@ Tunnel any TCP applications through NKN client or Tuna. A few advantages:
 - Network agnostic: Neither sender nor receiver needs to have public IP address
   or port forwarding. NKN tunnel only establish outbound (websocket)
   connections, so Internet access is all they need on both side.
-
 - Top level security: All data are end to end authenticated and encrypted. No
   one else in the world except sender and receiver can see or modify the content
   of the data. The same public key is used for both routing and encryption,
   eliminating the possibility of man in the middle attack.
-
 - Decent performance: By aggregating multiple overlay paths concurrently, one
   can get ~100ms end to end latency and 10+mbps end to end throughput between
   international devices using the default NKN client mode, or much lower latency
   and higher throughput using Tuna mode.
-
 - Everything is open source and decentralized. The default NKN client mode is
   free (If you are curious, node relay traffic for clients for free to earn
   mining rewards in NKN blockchain), while Tuna mode requires listener to pay
@@ -76,6 +73,10 @@ Now any TCP connection to client port 8081 will be forwarded to server port
 Add `-tuna` on both side of the tunnel to use Tuna mode, which has much better
 performance but requires listener to pay NKN token directly to Tuna service
 providers.
+
+## Turn on UDP under Tuna Mode
+
+When using Tuna mode, add `-udp` to turn on UDP communication on both side to support UDP communication.
 
 ## Contributing
 
