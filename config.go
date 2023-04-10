@@ -16,7 +16,8 @@ type Config struct {
 	WalletConfig      *nkn.WalletConfig
 	DialConfig        *nkn.DialConfig
 	TunaSessionConfig *ts.Config
-	Udp               bool
+	UDP               bool
+	UDPIdleTime       int32 // Seconds. Time to purge idle udp connections, 0 is for no purge.
 	Verbose           bool
 	TunaNode          *types.Node
 }
@@ -29,7 +30,8 @@ var defaultConfig = Config{
 	WalletConfig:      nil,
 	DialConfig:        nil,
 	TunaSessionConfig: nil,
-	Udp:               false,
+	UDP:               false,
+	UDPIdleTime:       0,
 	Verbose:           false,
 }
 

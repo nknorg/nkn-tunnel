@@ -118,7 +118,7 @@ func main() {
 		WalletConfig:      walletConfig,
 		DialConfig:        dialConfig,
 		TunaSessionConfig: tsConfig,
-		Udp:               *udp,
+		UDP:               *udp,
 		Verbose:           *verbose,
 	}
 
