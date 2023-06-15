@@ -93,6 +93,7 @@ func (t *Tunnel) listenUDP() (udpConn, error) {
 		if err != nil {
 			return nil, err
 		}
+		log.Println("Tunnel is listening at UDP", a.String())
 	}
 
 	return fromUDPConn, nil
