@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net"
@@ -48,6 +49,20 @@ type Tunnel struct {
 
 // NewTunnel creates a Tunnel client with given options.
 func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, config *Config) (*Tunnel, error) {
+	tunnels, err := NewTunnels(account, identifier, []string{from}, []string{to}, tuna, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return tunnels[0], nil
+}
+
+// NewTunnels creates Tunnel clients with given options.
+func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna bool, config *Config) ([]*Tunnel, error) {
+	if len(from) != len(to) || len(from) == 0 {
+		return nil, errors.New("from should have same length as to")
+	}
+
 	config, err := MergedConfig(config)
 	if err != nil {
 		return nil, err
@@ -56,85 +71,98 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 		return nil, ErrUDPNotSupported
 	}
 
-	fromNKN := len(from) == 0 || strings.ToLower(from) == "nkn"
-	toNKN := !strings.Contains(to, ":")
-	var m *nkn.MultiClient
-	var c *ts.TunaSessionClient
-	var dialer nknDialer
-
-	if fromNKN || toNKN {
-		m, err = nkn.NewMultiClient(account, identifier, config.NumSubClients, config.OriginalClient, config.ClientConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		<-m.OnConnect.C
-
-		dialer = newMultiClientDialer(m)
-
-		if tuna {
-			wallet, err := nkn.NewWallet(account, config.WalletConfig)
-			if err != nil {
-				return nil, err
-			}
-
-			c, err = ts.NewTunaSessionClient(account, m, wallet, config.TunaSessionConfig)
-			if err != nil {
-				return nil, err
-			}
-
-			dialer = c
-		}
-	}
-
-	listeners := make([]net.Listener, 0, 2)
-
-	if fromNKN {
-		if tuna {
-			if config.TunaNode != nil {
-				c.SetTunaNode(config.TunaNode)
-			}
-			listeners = append(listeners, c)
-			err = c.Listen(config.AcceptAddrs)
-			if err != nil {
-				return nil, err
-			}
-		}
-		listeners = append(listeners, m)
-		err = m.Listen(config.AcceptAddrs)
-		if err != nil {
-			return nil, err
-		}
-		from = m.Addr().String()
-	} else {
-		listener, err := net.Listen("tcp", from)
-		if err != nil {
-			return nil, err
-		}
-		listeners = append(listeners, listener)
-	}
-
-	log.Println("Listening at", from)
-
 	udpConnExpired := cache.NoExpiration
 	if config.UDPIdleTime > 0 {
 		udpConnExpired = time.Duration(config.UDPIdleTime) * time.Second
 	}
 
-	t := &Tunnel{
-		from:         from,
-		to:           to,
-		fromNKN:      fromNKN,
-		toNKN:        toNKN,
-		config:       config,
-		dialer:       dialer,
-		listeners:    listeners,
-		multiClient:  m,
-		tsClient:     c,
-		udpConnCache: cache.New(udpConnExpired, udpConnExpired),
+	fromNKN := false
+	for _, f := range from {
+		fromNKN = (len(f) == 0 || strings.ToLower(f) == "nkn")
+		if fromNKN {
+			break
+		}
+	}
+	if fromNKN && len(from) > 1 {
+		return nil, errors.New("multiple tunnels is not supported when from NKN")
 	}
 
-	return t, nil
+	var m *nkn.MultiClient
+	var c *ts.TunaSessionClient
+	var dialer nknDialer
+
+	m, err = nkn.NewMultiClient(account, identifier, config.NumSubClients, config.OriginalClient, config.ClientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	<-m.OnConnect.C
+	dialer = newMultiClientDialer(m)
+
+	if tuna {
+		wallet, err := nkn.NewWallet(account, config.WalletConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		c, err = ts.NewTunaSessionClient(account, m, wallet, config.TunaSessionConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		dialer = c
+	}
+
+	tunnels := make([]*Tunnel, 0)
+	for i, f := range from {
+		toNKN := !strings.Contains(to[i], ":")
+		listeners := make([]net.Listener, 0, 2)
+
+		if fromNKN {
+			if tuna {
+				if config.TunaNode != nil {
+					c.SetTunaNode(config.TunaNode)
+				}
+				listeners = append(listeners, c)
+				err = c.Listen(config.AcceptAddrs)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			listeners = append(listeners, m)
+			err = m.Listen(config.AcceptAddrs)
+			if err != nil {
+				return nil, err
+			}
+
+			f = m.Addr().String()
+		} else {
+			listener, err := net.Listen("tcp", f)
+			if err != nil {
+				return nil, err
+			}
+			listeners = append(listeners, listener)
+		}
+
+		log.Println("Listening at", f)
+
+		t := &Tunnel{
+			from:         f,
+			to:           to[i],
+			fromNKN:      fromNKN,
+			toNKN:        toNKN,
+			config:       config,
+			dialer:       dialer,
+			listeners:    listeners,
+			multiClient:  m,
+			tsClient:     c,
+			udpConnCache: cache.New(udpConnExpired, udpConnExpired),
+		}
+		tunnels = append(tunnels, t)
+	}
+
+	return tunnels, nil
 }
 
 // FromAddr returns the tunnel listening address.

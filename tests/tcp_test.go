@@ -3,15 +3,21 @@ package tests
 import (
 	"fmt"
 	"net"
+	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
-
-	tunnel "github.com/nknorg/nkn-tunnel"
 )
 
-// go test -v -run=TestTCPWriteReadData
-func TestTCPWriteReadData(t *testing.T) {
+// go test -v -run=TestTCP
+func TestTCP(t *testing.T) {
+	ch = make(chan string, 4)
+	if tunaNode == nil {
+		tunaNode = StartTunaNode()
+		waitFor(ch, tunaNodeStarted)
+	}
+
 	go func() {
 		err := StartTcpServer()
 		if err != nil {
@@ -22,18 +28,19 @@ func TestTCPWriteReadData(t *testing.T) {
 	waitFor(ch, tcpServerIsReady)
 
 	tuna := true
+
 	go func() {
-		err := StartTunnelListener(toAddrTcp, tuna)
+		err := StartTunnelListeners(tuna)
 		if err != nil {
-			fmt.Printf("StartTunnelListener err: %v\n", err)
-			return
+			fmt.Printf("StartTunnelListeners err: %v\n", err)
+			os.Exit(-1)
 		}
 	}()
 
 	waitFor(ch, tunnelServerIsReady)
 
 	go func() {
-		err := StartTunnelDialer(fromAddrTcp, tuna)
+		err := StartTunnelDialers(true, tuna)
 		if err != nil {
 			fmt.Printf("StartTunnelDialer err: %v\n", err)
 			return
@@ -42,64 +49,18 @@ func TestTCPWriteReadData(t *testing.T) {
 
 	waitFor(ch, tunnelClientIsReady)
 
-	go StartTcpDialer()
+	go StartTcpDialers()
 
 	waitFor(ch, tcpServerExit)
-}
-
-func StartTunnelListener(toAddr string, tuna bool) error {
-	acc, _, err := CreateAccountAndWallet(seedHex)
-	if err != nil {
-		return err
-	}
-
-	config := CreateTunnelConfig(true)
-	tun, err := tunnel.NewTunnel(acc, listenerId, "nkn", toAddr, tuna, config)
-	if err != nil {
-		return err
-	}
-	time.Sleep(10 * time.Second) // wait for tuna node is ready
-
-	ts := tun.TunaSessionClient()
-	<-ts.OnConnect()
-	ch <- tunaSessionConnected
-	ch <- tunnelServerIsReady
-	fmt.Printf("tunnel server is ready, toAddr is %v\n", toAddr)
-
-	err = tun.Start()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func StartTunnelDialer(fromAddr string, tuna bool) error {
-	acc, _, err := CreateAccountAndWallet(seedHex)
-	if err != nil {
-		return err
-	}
-
-	config := CreateTunnelConfig(true)
-	tun, err := tunnel.NewTunnel(acc, listenerId, fromAddr, remoteAddr, tuna, config)
-	if err != nil {
-		return err
-	}
-
-	ch <- tunnelClientIsReady
-
-	err = tun.Start()
-	if err != nil {
-		return err
-	}
-	return nil
+	close(ch)
 }
 
 func StartTcpServer() error {
-	listener, err := net.Listen("tcp", toAddrTcp)
+	listener, err := net.Listen("tcp", toPort)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("tcp server is listening at %v\n", toAddrTcp)
+	fmt.Printf("StartTcpServer is listening at %v\n", toPort)
 	ch <- tcpServerIsReady
 
 	conn, err := listener.Accept()
@@ -111,33 +72,60 @@ func StartTcpServer() error {
 	for {
 		n, err := conn.Read(b)
 		if err != nil {
+			fmt.Printf("StartTcpServer conn.Read err %v\n", err)
 			return err
 		}
 
-		fmt.Printf("tcp server read: %v\n", string(b[:n]))
-		if strings.Contains(string(b[:n]), tcpDialerExit) {
+		fmt.Printf("TCP Server got: %v\n", string(b[:n]))
+		if strings.Contains(string(b[:n]), exit) {
 			break
+		}
+		// echo
+		_, err = conn.Write(b[:n])
+		if err != nil {
+			fmt.Printf("StartTcpServer conn.Write err %v\n", err)
+			return err
 		}
 	}
 	ch <- tcpServerExit
 	return nil
 }
 
-func StartTcpDialer() error {
-	conn, err := net.Dial("tcp", fromAddrTcp)
-	if err != nil {
-		return err
-	}
+func StartTcpDialers() error {
+	var wg sync.WaitGroup
+	for i, fromPort := range fromPorts {
+		wg.Add(1)
+		go func(clientNum int, from string) {
+			defer wg.Done()
+			conn, err := net.Dial("tcp", from)
+			if err != nil {
+				fmt.Printf("StartTcpDialers net.Dial to %v err %v\n", from, err)
+				return
+			}
 
-	for i := 0; i < 10; i++ {
-		_, err := conn.Write([]byte(fmt.Sprintf("tcp client data %v\n", i)))
-		if err != nil {
-			return err
-		}
+			for i := 0; i < 10; i++ {
+				msg := fmt.Sprintf("tcp client %v data %v", clientNum, i)
+				_, err := conn.Write([]byte(msg))
+				if err != nil {
+					fmt.Printf("StartTcpDialers conn.Write to %v err %v\n", from, err)
+					return
+				}
+				b := make([]byte, 1024)
+				n, err := conn.Read(b)
+				if err != nil {
+					fmt.Printf("StartTcpDialers conn.Read to %v err %v\n", from, err)
+					return
+				}
+				if string(b[:n]) != msg {
+					fmt.Printf("StartTcpDialers get echo %v, it should be %v\n", string(b[:n]), msg)
+					return
+				}
+				fmt.Printf("TCP Client %v got echo: %v\n", clientNum, string(b[:n]))
+			}
+			conn.Write([]byte(exit))
+			time.Sleep(2 * time.Second) // wait for tcp server get it
+		}(i, fromPort)
 	}
-	conn.Write([]byte(tcpDialerExit))
-	time.Sleep(2 * time.Second) // wait for tcp server get it
-
-	ch <- tcpDialerExit
+	wg.Wait()
 	return nil
 }
