@@ -37,6 +37,7 @@ func main() {
 	tunaDownloadGeoDB := flag.Bool("tuna-download-geo-db", false, "download tuna geo db to disk")
 	tunaGeoDBPath := flag.String("tuna-geo-db-path", ".", "path to store tuna geo db")
 	tunaMeasureBandwidth := flag.Bool("tuna-measure-bandwidth", false, "tuna measure bandwidth")
+	tunaMeasurementBytesDownLink := flag.Int("tuna-measure-bandwidth-bytes", 1, "tuna measure bandwidth bytes to transmit")
 	mtu := flag.Int("mtu", 0, "ncp session mtu")
 	rpcAddr := flag.String("rpc", "", "Seed RPC server address, separated by comma")
 	udp := flag.Bool("udp", false, "support udp")
@@ -97,17 +98,18 @@ func main() {
 		}
 
 		tsConfig = &ts.Config{
-			NumTunaListeners:       *numClients,
-			SessionConfig:          sessionConfig,
-			TunaIPFilter:           &geo.IPFilter{Allow: locations},
-			TunaServiceName:        *tunaServiceName,
-			TunaSubscriptionPrefix: *tunaSubscriptionPrefix,
-			TunaMaxPrice:           *tunaMaxPrice,
-			TunaMinNanoPayFee:      *tunaMinFee,
-			TunaNanoPayFeeRatio:    *tunaFeeRatio,
-			TunaDownloadGeoDB:      *tunaDownloadGeoDB,
-			TunaGeoDBPath:          *tunaGeoDBPath,
-			TunaMeasureBandwidth:   *tunaMeasureBandwidth,
+			NumTunaListeners:             *numClients,
+			SessionConfig:                sessionConfig,
+			TunaIPFilter:                 &geo.IPFilter{Allow: locations},
+			TunaServiceName:              *tunaServiceName,
+			TunaSubscriptionPrefix:       *tunaSubscriptionPrefix,
+			TunaMaxPrice:                 *tunaMaxPrice,
+			TunaMinNanoPayFee:            *tunaMinFee,
+			TunaNanoPayFeeRatio:          *tunaFeeRatio,
+			TunaDownloadGeoDB:            *tunaDownloadGeoDB,
+			TunaGeoDBPath:                *tunaGeoDBPath,
+			TunaMeasureBandwidth:         *tunaMeasureBandwidth,
+			TunaMeasurementBytesDownLink: int32(*tunaMeasurementBytesDownLink),
 		}
 	}
 
