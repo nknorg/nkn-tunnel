@@ -80,7 +80,7 @@ func (t *Tunnel) listenUDP() (udpConn, error) {
 			return nil, ErrUDPNotSupported
 		}
 		var err error
-		fromUDPConn, err = t.tsClient.ListenUDP(t.config.AcceptAddrs)
+		fromUDPConn, err = t.tsClient.ListenUDP()
 		if err != nil {
 			return nil, err
 		}

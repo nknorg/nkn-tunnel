@@ -48,8 +48,8 @@ type Tunnel struct {
 }
 
 // NewTunnel creates a Tunnel client with given options.
-func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, config *Config) (*Tunnel, error) {
-	tunnels, err := NewTunnels(account, identifier, []string{from}, []string{to}, tuna, config)
+func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, config *Config, mc *nkn.MultiClient) (*Tunnel, error) {
+	tunnels, err := NewTunnels(account, identifier, []string{from}, []string{to}, tuna, config, mc)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,8 @@ func NewTunnel(account *nkn.Account, identifier, from, to string, tuna bool, con
 }
 
 // NewTunnels creates Tunnel clients with given options.
-func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna bool, config *Config) ([]*Tunnel, error) {
+// If argument `mc` is nil, then a new MultiClient will be created based on `account` and `identifier`.
+func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna bool, config *Config, mc *nkn.MultiClient) ([]*Tunnel, error) {
 	if len(from) != len(to) || len(from) == 0 {
 		return nil, errors.New("from should have same length as to")
 	}
@@ -87,17 +88,20 @@ func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna
 		return nil, errors.New("multiple tunnels is not supported when from NKN")
 	}
 
-	var m *nkn.MultiClient
 	var c *ts.TunaSessionClient
 	var dialer nknDialer
 
-	m, err = nkn.NewMultiClient(account, identifier, config.NumSubClients, config.OriginalClient, config.ClientConfig)
-	if err != nil {
-		return nil, err
-	}
+	if mc == nil {
+		mc, err = nkn.NewMultiClient(account, identifier, config.NumSubClients, config.OriginalClient, config.ClientConfig)
+		if err != nil {
+			return nil, err
+		}
 
-	<-m.OnConnect.C
-	dialer = newMultiClientDialer(m)
+		<-mc.OnConnect.C
+	} else {
+		account = mc.Account()
+	}
+	dialer = newMultiClientDialer(mc)
 
 	if tuna {
 		wallet, err := nkn.NewWallet(account, config.WalletConfig)
@@ -105,7 +109,7 @@ func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna
 			return nil, err
 		}
 
-		c, err = ts.NewTunaSessionClient(account, m, wallet, config.TunaSessionConfig)
+		c, err = ts.NewTunaSessionClient(account, mc, wallet, config.TunaSessionConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -130,13 +134,13 @@ func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna
 				}
 			}
 
-			listeners = append(listeners, m)
-			err = m.Listen(config.AcceptAddrs)
+			listeners = append(listeners, mc)
+			err = mc.Listen(config.AcceptAddrs)
 			if err != nil {
 				return nil, err
 			}
 
-			f = m.Addr().String()
+			f = mc.Addr().String()
 		} else {
 			listener, err := net.Listen("tcp", f)
 			if err != nil {
@@ -155,7 +159,7 @@ func NewTunnels(account *nkn.Account, identifier string, from, to []string, tuna
 			config:       config,
 			dialer:       dialer,
 			listeners:    listeners,
-			multiClient:  m,
+			multiClient:  mc,
 			tsClient:     c,
 			udpConnCache: cache.New(udpConnExpired, udpConnExpired),
 		}
@@ -214,6 +218,7 @@ func (t *Tunnel) SetAcceptAddrs(addrsRe *nkngomobile.StringArray) error {
 				return err
 			}
 		}
+		t.config.AcceptAddrs = addrsRe
 	}
 	return nil
 }

@@ -7,7 +7,7 @@ require (
 	github.com/imdario/mergo v0.3.15
 	github.com/nknorg/ncp-go v1.0.6-0.20230228002512-f4cd1740bebd
 	github.com/nknorg/nkn-sdk-go v1.4.6-0.20230404044330-ad192f36d07e
-	github.com/nknorg/nkn-tuna-session v0.2.6-0.20230720223014-911b930bb501
+	github.com/nknorg/nkn-tuna-session v0.2.6-0.20230803011026-70aae317eec6
 	github.com/nknorg/nkn/v2 v2.2.0
 	github.com/nknorg/nkngomobile v0.0.0-20220615081414-671ad1afdfa9
 	github.com/nknorg/tuna v0.0.0-20230720072916-745c518d52a8
