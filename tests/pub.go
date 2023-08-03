@@ -187,7 +187,7 @@ func StartTunnelListeners(tuna bool) error {
 
 	config := CreateTunnelConfig(tuna)
 
-	tunnels, err := tunnel.NewTunnels(acc, listenerId, []string{"nkn"}, []string{toPort}, tuna, config)
+	tunnels, err := tunnel.NewTunnels(acc, listenerId, []string{"nkn"}, []string{toPort}, tuna, config, nil)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func StartTunnelDialers(tcp, tuna bool) error {
 		from = fromUDPPorts
 	}
 
-	tunnels, err := tunnel.NewTunnels(acc, dialerId, from, remoteAddrs, tuna, config)
+	tunnels, err := tunnel.NewTunnels(acc, dialerId, from, remoteAddrs, tuna, config, nil)
 	if err != nil {
 		return err
 	}

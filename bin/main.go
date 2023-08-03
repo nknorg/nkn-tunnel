@@ -124,7 +124,7 @@ func main() {
 		Verbose:           *verbose,
 	}
 
-	t, err := tunnel.NewTunnel(account, *identifier, *from, *to, *useTuna, config)
+	t, err := tunnel.NewTunnel(account, *identifier, *from, *to, *useTuna, config, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
