@@ -6,6 +6,10 @@ BUILD=go build -ldflags "-s -w -X main.Version=$(VERSION)"
 BUILD_DIR=build
 BIN_NAME=nkn-tunnel
 MAIN=bin/main.go
+LIB_NAME:=libnkntunnel
+LIB_SRC_FILE:=lib/libnkntunnel.go
+LIB_BUILD_DIR:=$(BUILD_DIR)/lib
+
 ifdef GOARM
 BIN_DIR=$(GOOS)-$(GOARCH)v$(GOARM)
 else
@@ -65,3 +69,40 @@ android:
 	gomobile bind -target=android -ldflags "-s -w" github.com/nknorg/nkn-tunnel github.com/nknorg/nkn-tuna-session github.com/nknorg/ncp-go github.com/nknorg/tuna github.com/nknorg/nkn-sdk-go github.com/nknorg/nkngomobile
 	mv tunnel.aar tunnel-sources.jar $(BUILD_DIR)/android/
 	${MAKE} zip BIN_DIR=android
+
+.PHONY: lib
+lib:
+	rm -rf $(BUILD_DIR)/lib
+	mkdir -p $(BUILD_DIR)/lib
+
+	for target in \
+			"darwin arm64 darwin-arm64 .dylib clang" \
+			"windows amd64 win-amd64 .dll x86_64-w64-mingw32-gcc " \
+    		"linux amd64 linux-amd64 .so x86_64-linux-musl-gcc"; \
+    	do \
+    		set -- $$target; \
+    		GOOS=$$1 GOARCH=$$2 PLATFORM=$$3 EXT=$$4 CC=$$5; \
+    		echo "Building for $$GOOS/$$GOARCH..."; \
+    		BUILD_OUTPUT=$(LIB_BUILD_DIR)/$$GOOS_$$PLATFORM/$(LIB_NAME)$$EXT; \
+    		mkdir -p $(dir $$BUILD_OUTPUT); \
+    		CGO_ENABLED=1 GOOS=$$GOOS GOARCH=$$GOARCH CC=$$CC go build -buildmode=c-shared \
+    			-ldflags "-s -w -X main.Version=$(VERSION)" \
+    			-o $$BUILD_OUTPUT $(LIB_SRC_FILE); \
+    		if [ $$? -ne 0 ]; then \
+    			echo "Failed to build $$GOOS/$$GOARCH"; \
+    			exit 1; \
+    		fi; \
+    		echo "Successfully built $$GOOS/$$GOARCH"; \
+    	done
+
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 CC=clang go build -buildmode=c-archive -ldflags "-s -w -X main.Version=$(VERSION)" -o $(LIB_BUILD_DIR)/ios-arm64/$(LIB_NAME).a $(LIB_SRC_FILE)
+	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 CC=clang go build -buildmode=c-archive -ldflags "-s -w -X main.Version=$(VERSION)" -o $(LIB_BUILD_DIR)/ios-amd64/$(LIB_NAME).a $(LIB_SRC_FILE)
+	mkdir -p $(LIB_BUILD_DIR)/ios
+	lipo -create -output $(LIB_BUILD_DIR)/ios/libnkntunnel.a $(LIB_BUILD_DIR)/ios-amd64/libnkntunnel.a $(LIB_BUILD_DIR)/ios-arm64/libnkntunnel.a
+	cp $(LIB_BUILD_DIR)/ios-arm64/$(LIB_NAME).h $(LIB_BUILD_DIR)/ios/$(LIB_NAME).h
+	@echo "All platforms built successfully. Output in $(LIB_BUILD_DIR)/"
+
+.PHONY: package_lib
+package_lib: lib
+	cd $(BUILD_DIR) && rm -f lib.tar.gz && tar -czf lib.tar.gz lib
+	@echo "Library package created: $(BUILD_DIR)/lib.tar.gz"
