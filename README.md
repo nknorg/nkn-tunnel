@@ -106,3 +106,98 @@ git commit -s
 - [Telegram](https://t.me/nknorg)
 - [Reddit](https://www.reddit.com/r/nknblockchain/)
 - [Twitter](https://twitter.com/NKN_ORG)
+
+## Building Dynamic and Static Libraries
+
+```shell
+make lib
+```
+
+### Build Targets
+
+The `make lib` target builds shared libraries (dynamic libraries) and static libraries for the following platforms:
+
+* macOS: `.dylib` and `.a`
+* Windows: `.dll`
+* Linux: `.so`
+* iOS: `.a`
+
+All generated files are stored in the `build/lib` directory.
+
+### Prerequisites
+
+1. Required Tools
+Ensure the following tools are installed on your system:
+
+* go (version >= 1.20)
+* clang (for macOS and iOS builds)
+* x86_64-w64-mingw32-gcc (for Windows builds)
+* x86_64-linux-musl-gcc (for Linux builds)
+* lipo (for merging iOS static libraries)	
+
+2. Environment Setup
+
+* Ensure make and related tools are in your PATH.
+* Set GOPATH and GOROOT environment variables appropriately.
+
+> Builds shared libraries (c-shared) for the following platforms:
+
+* macOS (arm64): .dylib
+* Windows (amd64): .dll
+* Linux (amd64): .so
+
+> Builds static libraries (c-archive) for the following platforms:
+
+* iOS (arm64 and amd64): .a
+
+### Generated File Structure
+
+After a successful build, the output files are organized as follows:
+
+```
+build/lib/
+├── darwin-arm64/
+│   ├── libnkntunnel.dylib
+│   └── libnkntunnel.h
+├── ios/
+│   ├── libnkntunnel.a
+│   └── libnkntunnel.h
+├── ios-arm64/
+│   ├── libnkntunnel.a
+│   └── libnkntunnel.h
+├── ios-amd64/
+│   ├── libnkntunnel.a
+│   └── libnkntunnel.h
+├── linux-amd64/
+│   ├── libnkntunnel.so
+│   └── libnkntunnel.h
+├── win-amd64/
+│   ├── libnkntunnel.dll
+│   └── libnkntunnel.h
+└── ...
+```
+
+## Common Issues and Solutions
+
+1. Build Fails: Missing Compiler
+
+* Ensure the following compilers are installed:
+* clang (for macOS and iOS builds)
+* x86_64-w64-mingw32-gcc (for Windows builds)
+* x86_64-linux-musl-gcc (for Linux builds)
+
+2. Error: library not found
+
+* Ensure all Go module dependencies are installed:
+
+```shell
+go mod tidy
+```
+
+3. `lipo` Command Not Found
+
+* On macOS, ensure Xcode is installed, and the correct developer tools are selected:
+
+```shell
+xcode-select --install
+``` 
