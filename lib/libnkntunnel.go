@@ -75,7 +75,11 @@ func SetLogFilePath(path *C.char) {
 }
 
 //export StartNknTunnel
-func StartNknTunnel(numClients C.int, seedRpcServers *C.char, seedHex *C.char, identifier *C.char, from *C.char, to *C.char, udp C.int, useTuna C.int, tunaMaxPrice *C.char, tunaMinFee *C.char, tunaFeeRatio C.float, verbose C.int) C.int {
+func StartNknTunnel(numClients C.int, seedRpcServers *C.char, seedHex *C.char, identifier *C.char,
+	from *C.char, to *C.char, udp C.int, useTuna C.int,
+	tunaMaxPrice *C.char, tunaMinFee *C.char, tunaFeeRatio C.float,
+	tunaDownloadGeoDB C.int, tunaGeoDBPath *C.char, tunaMeasureBandwidth C.int, tunaMeasureStoragePath *C.char, tunaMeasurementBytesDownLink C.int,
+	verbose C.int) C.int {
 	tunnelMutex.Lock()
 	defer tunnelMutex.Unlock()
 
@@ -96,11 +100,20 @@ func StartNknTunnel(numClients C.int, seedRpcServers *C.char, seedHex *C.char, i
 	tunaMaxPriceGo := C.GoString(tunaMaxPrice)
 	tunaMinFeeGo := C.GoString(tunaMinFee)
 	tunaFeeRatioGo := float64(tunaFeeRatio)
+	tunaDownloadGeoDBGo := tunaDownloadGeoDB != 0
+	tunaGeoDBPathGo := C.GoString(tunaGeoDBPath)
+	tunaMeasureBandwidthGo := tunaMeasureBandwidth != 0
+	tunaMeasureStoragePathGo := C.GoString(tunaMeasureStoragePath)
+	tunaMeasurementBytesDownLinkGo := int32(tunaMeasurementBytesDownLink)
 	verboseGo := verbose != 0
 
 	if seedHexGo == "" {
 		log.Println("Seed hex cannot be empty")
 		return 1
+	}
+
+	if tunaMeasurementBytesDownLinkGo == 0 {
+		tunaMeasurementBytesDownLinkGo = 256 << 8
 	}
 
 	if tunaMaxPriceGo == "" {
@@ -142,11 +155,16 @@ func StartNknTunnel(numClients C.int, seedRpcServers *C.char, seedHex *C.char, i
 	var tsConfig *ts.Config
 	if useTunaGo {
 		tsConfig = &ts.Config{
-			NumTunaListeners:    numClientsGo,
-			SessionConfig:       sessionConfig,
-			TunaMaxPrice:        tunaMaxPriceGo,
-			TunaMinNanoPayFee:   tunaMinFeeGo,
-			TunaNanoPayFeeRatio: tunaFeeRatioGo,
+			NumTunaListeners:             numClientsGo,
+			SessionConfig:                sessionConfig,
+			TunaMaxPrice:                 tunaMaxPriceGo,
+			TunaMinNanoPayFee:            tunaMinFeeGo,
+			TunaNanoPayFeeRatio:          tunaFeeRatioGo,
+			TunaDownloadGeoDB:            tunaDownloadGeoDBGo,
+			TunaGeoDBPath:                tunaGeoDBPathGo,
+			TunaMeasureBandwidth:         tunaMeasureBandwidthGo,
+			TunaMeasureStoragePath:       tunaMeasureStoragePathGo,
+			TunaMeasurementBytesDownLink: tunaMeasurementBytesDownLinkGo,
 		}
 	}
 
