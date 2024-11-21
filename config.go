@@ -1,7 +1,7 @@
 package tunnel
 
 import (
-	"github.com/imdario/mergo"
+	"dario.cat/mergo"
 	"github.com/nknorg/nkn-sdk-go"
 	ts "github.com/nknorg/nkn-tuna-session"
 	"github.com/nknorg/nkngomobile"
