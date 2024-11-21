@@ -3,11 +3,11 @@ module github.com/nknorg/nkn-tunnel
 go 1.20
 
 require (
+	dario.cat/mergo v1.0.1
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/imdario/mergo v0.3.16
 	github.com/nknorg/ncp-go v1.0.6
 	github.com/nknorg/nkn-sdk-go v1.4.8
-	github.com/nknorg/nkn-tuna-session v0.2.6
+	github.com/nknorg/nkn-tuna-session v0.2.7-0.20241121010333-4aa759c293c3
 	github.com/nknorg/nkn/v2 v2.2.1
 	github.com/nknorg/nkngomobile v0.0.0-20220615081414-671ad1afdfa9
 	github.com/nknorg/tuna v0.1.0
@@ -19,6 +19,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/itchyny/base58-go v0.2.2 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/nknorg/encrypted-stream v1.0.2-0.20230320101720-9891f770de86 // indirect
@@ -35,7 +36,7 @@ require (
 	github.com/pion/randutil v0.1.0 // indirect
 	github.com/pion/rtcp v1.2.14 // indirect
 	github.com/pion/rtp v1.8.9 // indirect
-	github.com/pion/sctp v1.8.33 // indirect
+	github.com/pion/sctp v1.8.34 // indirect
 	github.com/pion/sdp/v3 v3.0.9 // indirect
 	github.com/pion/srtp/v3 v3.0.4 // indirect
 	github.com/pion/stun/v3 v3.0.0 // indirect
